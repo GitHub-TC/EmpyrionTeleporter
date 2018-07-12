@@ -49,7 +49,7 @@ namespace EmpyrionTeleporter
 
             public override string ToString()
             {
-                return $"{Permission}[{PermissionId}]: A:{A.ToString()} <=> B:{B.ToString()}";
+                return $"{Permission}[{PermissionId}]: {A.ToString()} <=> {B.ToString()}";
             }
         }
 

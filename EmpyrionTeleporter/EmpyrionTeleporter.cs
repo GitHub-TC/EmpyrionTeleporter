@@ -12,8 +12,8 @@ using System.IO;
 namespace EmpyrionTeleporter
 {
     public static class Vector3Extension{
-        public static string String(this PVector3 aVector) => $"{aVector.x},{aVector.y},{aVector.z}";
-        public static string String(this Vector3 aVector) => $"{aVector.X},{aVector.Y},{aVector.Z}";
+        public static string String(this PVector3 aVector) => $"{aVector.x:F1},{aVector.y:F1},{aVector.z:F1}";
+        public static string String(this Vector3 aVector) => $"{aVector.X:F1},{aVector.Y:F1},{aVector.Z:F1}";
     }
 
     public partial class EmpyrionTeleporter : SimpleMod
