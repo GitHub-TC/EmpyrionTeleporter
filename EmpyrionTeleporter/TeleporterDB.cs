@@ -53,6 +53,7 @@ namespace EmpyrionTeleporter
             }
         }
 
+        public Configuration Configuration { get; set; } = new Configuration();
         public List<TeleporterRoute> TeleporterRoutes { get; set; } = new List<TeleporterRoute>();
         public static Action<string> LogDB { get; set; }
 
@@ -74,9 +75,6 @@ namespace EmpyrionTeleporter
             var EntityRot = GetMatrix4x4(GetVector3(FoundEntity.Data.rot)).Transpose();
 
             RelativePos = Vector3.Transform(RelativePos, EntityRot);
-            //RelativePos = new Vector3(((int)Math.Round(RelativePos.X + 1)) / 2 * 2,
-            //                          ((int)Math.Round(RelativePos.Y + 1)) / 2 * 2,
-            //                          ((int)Math.Round(RelativePos.Z + 1)) / 2 * 2);
             RelativePos = new Vector3(RelativePos.X, ((int)Math.Round(RelativePos.Y + 1.9)) / 2 * 2, RelativePos.Z);
 
             if (FoundRoute == null)
@@ -140,8 +138,6 @@ namespace EmpyrionTeleporter
             if (StructureInfo == null)
             {
                 log($"TargetStructure missing:{aTarget.Id} pos={aTarget.Position.String()}");
-//              log($"TargetStructure missing:{aTarget.Id} pos={aTarget.Position.String()} => {aGlobalStructureList.globalStructures.Aggregate("", (s, p) => s + p.Key + ":" + p.Value.Aggregate("", (ss, pp) => ss + " " + pp.id + "/" + pp.name))}");
-
                 return false;
             }
 

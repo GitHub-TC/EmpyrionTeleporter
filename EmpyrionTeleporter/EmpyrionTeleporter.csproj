@@ -54,6 +54,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Configuration.cs" />
     <Compile Include="EmpyrionTeleporter.cs" />
     <Compile Include="Matrix4x4.cs" />
     <Compile Include="Plane.cs" />

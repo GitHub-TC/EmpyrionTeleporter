@@ -84,59 +84,18 @@ namespace EmpyrionTeleporter
                 case SubCommand.List    : ListTeleporterRoutes      (info.playerId, getIntParam(args, "Id")); break;
                 case SubCommand.ListAll : ListAllTeleporterRoutes   (info.playerId); break;
                 case SubCommand.Save    : SaveTeleporterRoute       (info.playerId, aPermission, getIntParam(args, "SourceId"), getIntParam(args, "TargetId")); break;
-                case SubCommand.Teleport: Request_GlobalStructure_List(G => Request_Player_Info(info.playerId.ToId(), P => ExecTeleportPlayer(G, P))); return;
+                case SubCommand.Teleport: TeleportPlayer(info.playerId); break; 
             }
         }
 
-
-        /*
-                private void UpdateTeleporterPos(GlobalStructureList aGlobalStructureList, Action aAction)
-                {
-                    var UpdateIds = TeleporterDB.TeleporterRoutes.Aggregate(new List<int>(), (L, T) => { if (T.A.Id != 0 && !L.Contains(T.A.Id)) L.Add(T.A.Id); if (T.B.Id != 0 && !L.Contains(T.B.Id)) L.Add(T.B.Id); return L; });
-                    UpdateTeleporterPos(UpdateIds, aGlobalStructureList, aAction);
-                }
-
-                private void UpdateTeleporterPos(List<int> aUpdateIds, GlobalStructureList aGlobalStructureList, Action aAction)
-                {
-                    File.AppendAllText("info.txt", $"\n{DateTime.Now.ToLongTimeString()} Update.Count={aUpdateIds.Count}");
-
-                    if (aUpdateIds.Count == 0)
-                    {
-                        aAction();
-                        return;
-                    }
-
-                    var UpdateId = aUpdateIds.First();
-                    aUpdateIds.RemoveAt(0);
-
-                    try
-                    {
-                        File.AppendAllText("info.txt", $"\n{DateTime.Now.ToLongTimeString()} Update={UpdateId}");
-                        Request_Entity_PosAndRot(new Id(UpdateId), P => { UpdateTeleporterPos(aGlobalStructureList, P); }, E => UpdateTeleporterPos(aUpdateIds, aGlobalStructureList, aAction));
-                    }
-                    catch (Exception)
-                    {
-                        UpdateTeleporterPos(aUpdateIds, aGlobalStructureList, aAction);
-                    }
-                }
-
-                private void UpdateTeleporterPos(GlobalStructureList aGlobalStructureList, IdPositionRotation aIdPos)
-                {
-                    bool Leave = false;
-                    foreach (var PlayfieldItems in aGlobalStructureList.globalStructures.ToArray())
-                    {
-                        aGlobalStructureList.globalStructures[PlayfieldItems.Key] = PlayfieldItems.Value.Select(E => {
-                            if (E.id == aIdPos.id) {
-                                File.AppendAllText("info.txt", $"\n{DateTime.Now.ToLongTimeString()} pos={E.pos.String()}=>{aIdPos.pos.String()} rot={E.rot.String()}=>{aIdPos.rot.String()}");
-                                E.pos = aIdPos.pos; E.rot = aIdPos.rot; Leave = true;
-                            }
-                            return E;
-                        }).ToList();
-
-                        if (Leave) return;
-                    }
-                }
-        */
+        private void TeleportPlayer(int aPlayerId)
+        {
+            Request_GlobalStructure_List(G => 
+                Request_Player_Info(aPlayerId.ToId(), P => {
+                    if (P.credits < TeleporterDB.Configuration.CostsPerTeleport) AlertPlayer(P.entityId, $"You need {TeleporterDB.Configuration.CostsPerTeleport} credits ;-)");
+                    else if (ExecTeleportPlayer(G, P) && TeleporterDB.Configuration.CostsPerTeleport > 0) Request_Player_SetCredits(new IdCredits(P.entityId, P.credits - TeleporterDB.Configuration.CostsPerTeleport));
+                }));
+        }
 
         private void SaveTeleporterRoute(int aPlayerId, TeleporterPermission aPermission, int aSourceId, int aTargetId)
         {
@@ -144,15 +103,32 @@ namespace EmpyrionTeleporter
             {
                 Request_Player_Info(aPlayerId.ToId(), (P) =>
                 {
-                    if      (TeleporterDB.SearchEntity(G, aSourceId) == null) AlertPlayer(P.entityId, $"Structure not found: {aSourceId}");
-                    else if (TeleporterDB.SearchEntity(G, aTargetId) == null) AlertPlayer(P.entityId, $"Structure not found: {aTargetId}");
+                    var SourceStructure = TeleporterDB.SearchEntity(G, aSourceId);
+                    var TargetStructure = TeleporterDB.SearchEntity(G, aSourceId);
+
+                    if      (SourceStructure == null) AlertPlayer(P.entityId, $"Structure not found: {aSourceId}");
+                    else if (TargetStructure == null) AlertPlayer(P.entityId, $"Structure not found: {aTargetId}");
+                    else if (!CheckPermission(SourceStructure, TeleporterDB.Configuration)) AlertPlayer(P.entityId, $"Structure not allowed: {aSourceId}");
+                    else if (!CheckPermission(TargetStructure, TeleporterDB.Configuration)) AlertPlayer(P.entityId, $"Structure not allowed: {aTargetId}");
+                    else if (P.credits < TeleporterDB.Configuration.CostsPerTeleporterPosition) AlertPlayer(P.entityId, $"You need {TeleporterDB.Configuration.CostsPerTeleporterPosition} credits ;-)");
                     else
                     {
                         TeleporterDB.AddRoute(G, aPermission, aSourceId, aTargetId, P);
                         TeleporterDB.SaveDB();
+
+                        if(TeleporterDB.Configuration.CostsPerTeleporterPosition > 0) Request_Player_SetCredits(new IdCredits(P.entityId, P.credits - TeleporterDB.Configuration.CostsPerTeleporterPosition));
                     }
                 });
             });
+        }
+
+        private bool CheckPermission(TeleporterDB.PlayfieldStructureInfo aStructure, Configuration aConfiguration)
+        {
+            return aConfiguration.AllowedStructures.Any(C => 
+                C.CoreType == (CoreType)(aStructure.Data.coreType == -1 ? CoreType.Player_Core : (CoreType)aStructure.Data.coreType) && 
+                C.EntityType == (EntityType)aStructure.Data.type && 
+                C.FactionGroups == (FactionGroups)aStructure.Data.factionGroup
+            );
         }
 
         private void ListAllTeleporterRoutes(int aPlayerId)
@@ -161,6 +137,10 @@ namespace EmpyrionTeleporter
             {
                 ShowDialog(aPlayerId, P, "Teleporters", TeleporterDB.TeleporterRoutes.OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString() + "\n"));
             });
+
+            Request_GlobalStructure_List(G =>
+                File.AppendAllText("info.txt", $"\n{G.globalStructures.Aggregate("", (s, p) => s + p.Key + ":" + p.Value.Aggregate("", (ss, pp) => ss + $" {pp.id}/{pp.name}/{pp.coreType}/{pp.type}/{pp.factionGroup}"))}")
+            );
         }
 
         private void DeleteTeleporterRoutes(int aPlayerId, int aStructureId)
@@ -182,14 +162,14 @@ namespace EmpyrionTeleporter
             });
         }
 
-        private void ExecTeleportPlayer(GlobalStructureList aGlobalStructureList, PlayerInfo aPlayer)
+        private bool ExecTeleportPlayer(GlobalStructureList aGlobalStructureList, PlayerInfo aPlayer)
         {
             var FoundRoute = TeleporterDB.SearchRoute(aGlobalStructureList, aPlayer);
             if (FoundRoute == null)
             {
                 InformPlayer(aPlayer.entityId, "No teleporter position here :-( wait 2min for structure update and try it again please.");
                 log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}-> no route found for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'");
-                return;
+                return false;
             }
 
             log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}-> {FoundRoute.Id} on '{FoundRoute.Playfield}' pos={FoundRoute.Position.String()} rot={FoundRoute.Rotation.String()}");
@@ -199,6 +179,8 @@ namespace EmpyrionTeleporter
 
             if (FoundRoute.Playfield == aPlayer.playfield) Request_Entity_Teleport         (new IdPositionRotation         (aPlayer.entityId,                       GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
             else                                           Request_Player_ChangePlayerfield(new IdPlayfieldPositionRotation(aPlayer.entityId, FoundRoute.Playfield, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
+
+            return true;
         }
 
         private void ExecTeleportPlayerBack(int aPlayerId)
