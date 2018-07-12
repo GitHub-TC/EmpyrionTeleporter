@@ -32,6 +32,8 @@ namespace EmpyrionTeleporter
 
         Dictionary<int, IdPlayfieldPositionRotation> PlayerLastGoodPosition = new Dictionary<int, IdPlayfieldPositionRotation>();
 
+        FileSystemWatcher DBFileChangedWatcher;
+
         enum SubCommand
         {
             Help,
@@ -52,6 +54,16 @@ namespace EmpyrionTeleporter
 
             TeleporterDB.LogDB = log;
             TeleporterDB = TeleporterDB.ReadDB();
+            TeleporterDB.SaveDB();
+
+            DBFileChangedWatcher = new FileSystemWatcher
+            {
+                Path         = Path.GetDirectoryName(Path.Combine(Directory.GetCurrentDirectory(), TeleporterDB.DBFileName)),
+                NotifyFilter = NotifyFilters.LastWrite,
+                Filter       = Path.GetFileName(Path.Combine(Directory.GetCurrentDirectory(), TeleporterDB.DBFileName))
+            };
+            DBFileChangedWatcher.Changed += (s, e) => TeleporterDB = TeleporterDB.ReadDB();
+            DBFileChangedWatcher.EnableRaisingEvents = true;
 
             ChatCommands.Add(new ChatCommand(@"/tt",                                            (I, A) => ExecAlignCommand(SubCommand.Teleport, TeleporterPermission.PublicAccess,  I, A), "Execute teleport"));
             ChatCommands.Add(new ChatCommand(@"/tt help",                                       (I, A) => ExecAlignCommand(SubCommand.Help,     TeleporterPermission.PublicAccess,  I, A), "Display help"));
@@ -114,9 +126,11 @@ namespace EmpyrionTeleporter
                     else
                     {
                         TeleporterDB.AddRoute(G, aPermission, aSourceId, aTargetId, P);
+                        DBFileChangedWatcher.EnableRaisingEvents = false;
                         TeleporterDB.SaveDB();
+                        DBFileChangedWatcher.EnableRaisingEvents = true;
 
-                        if(TeleporterDB.Configuration.CostsPerTeleporterPosition > 0) Request_Player_SetCredits(new IdCredits(P.entityId, P.credits - TeleporterDB.Configuration.CostsPerTeleporterPosition));
+                        if (TeleporterDB.Configuration.CostsPerTeleporterPosition > 0) Request_Player_SetCredits(new IdCredits(P.entityId, P.credits - TeleporterDB.Configuration.CostsPerTeleporterPosition));
                     }
                 });
             });
@@ -138,9 +152,9 @@ namespace EmpyrionTeleporter
                 ShowDialog(aPlayerId, P, "Teleporters", TeleporterDB.TeleporterRoutes.OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString() + "\n"));
             });
 
-            Request_GlobalStructure_List(G =>
-                File.AppendAllText("info.txt", $"\n{G.globalStructures.Aggregate("", (s, p) => s + p.Key + ":" + p.Value.Aggregate("", (ss, pp) => ss + $" {pp.id}/{pp.name}/{pp.coreType}/{pp.type}/{pp.factionGroup}"))}")
-            );
+            //Request_GlobalStructure_List(G =>
+            //    File.AppendAllText("info.txt", $"\n{G.globalStructures.Aggregate("", (s, p) => s + p.Key + ":" + p.Value.Aggregate("", (ss, pp) => ss + $" {pp.id}/{pp.name}/{pp.coreType}/{pp.type}/{pp.factionGroup}"))}")
+            //);
         }
 
         private void DeleteTeleporterRoutes(int aPlayerId, int aStructureId)

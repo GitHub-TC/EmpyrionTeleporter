@@ -39,6 +39,13 @@ Beispiel:
 
 HINWEIS: Da Empyrion es mit den Positionen beim Teleport nicht so genau nimmt sollte der Raum um einen herum ausreichend Platz bieten ;-)
 
+### Configuration
+Eine Konfiguration kann man in der Datei (wird beim ersten Start automatisch erstellt)
+
+[Empyrion Directory]\Content\Mods\EmpyrionTeleporter\TeleporterDB.xml
+
+vornehmen.
+
 ### Is that it?
 Zunächst erstmal und damit viel Spaß beim Teleportieren wünscht euch
 

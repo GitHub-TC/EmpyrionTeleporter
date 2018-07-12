@@ -18,7 +18,7 @@ namespace EmpyrionTeleporter
 
     public class TeleporterDB
     {
-        private const string DBFileName = @"Content\Mods\EmpyrionTeleporter\TeleporterDB.xml";
+        public const string DBFileName = @"Content\Mods\EmpyrionTeleporter\TeleporterDB.xml";
 
         public class TeleporterData
         {
@@ -220,6 +220,7 @@ namespace EmpyrionTeleporter
 
             try
             {
+                log($"TeleporterDB ReadDB load '{Path.Combine(Directory.GetCurrentDirectory(), DBFileName)}'");
                 var serializer = new XmlSerializer(typeof(TeleporterDB));
                 using (var reader = XmlReader.Create(DBFileName))
                 {
