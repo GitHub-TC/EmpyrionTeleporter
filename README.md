@@ -1,4 +1,4 @@
-# Empyrion Base Align
+# Empyrion Teleporter
 ## FAQ
 
 Eine übersetzte Version findet ihr im EmpyrionTeleporter/bin Verzeichnis falls ihr die Mod nicht selber prüfen und compilieren wollt ;-)
@@ -15,7 +15,7 @@ Die Kommandos funktionieren NUR im Fraktionschat!
 
 * /tt help : Zeigt die Kommandos der Mod an
 
-#### Align
+#### Teleport
 
 * /tt => Teleport von dieser (vorher eingerichteten) Position zum Ziel durchführen
 * /tt help => Liste der Kommandos
@@ -31,11 +31,11 @@ Beispiel:
 - Basis: Akua (Id:1001)
 - CV: Akua Orbit (Id:4004)
 
-1. Auf/Bei der Basis die Position des Spielers markieren (Textur, LCD, Farbe,...) und das Kommand "/tt 1001 4004" aufrufen
+1. Auf/Bei der Basis die Position des Spielers markieren (Textur, LCD, Farbe,...) und das Kommando "/tt 1001 4004" aufrufen
 2. Zum CV reisen (noch manuell) ;-)
-3. Auf/Bei/In dem CV die Position des Spielers markieren (Textur, LCD, Farbe,...) und das Kommand "/tt 4004 1001" aufrufen
+3. Auf/Bei/In dem CV die Position des Spielers markieren (Textur, LCD, Farbe,...) und das Kommando "/tt 4004 1001" aufrufen
 
-=> Nun ist eine Teleporterroute eingerichtet und kann von den beiden markierten Positionen aus benutzt werden in dem an an der Position stehend im Fraktionschat den Befehl /tt absetzt.
+=> Nun ist eine Teleporterroute eingerichtet und kann von den beiden markierten Positionen aus benutzt werden in dem der Spieler, an der Position stehend, im Fraktionschat den Befehl /tt absetzt.
 
 HINWEIS: Da Empyrion es mit den Positionen beim Teleport nicht so genau nimmt sollte der Raum um einen herum ausreichend Platz bieten ;-)
 
