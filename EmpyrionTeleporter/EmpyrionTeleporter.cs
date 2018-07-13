@@ -8,6 +8,7 @@ using System.Numerics;
 using System.Reflection;
 using System.Threading;
 using System.IO;
+using System.Diagnostics;
 
 namespace EmpyrionTeleporter
 {
@@ -31,6 +32,13 @@ namespace EmpyrionTeleporter
         public IdPlayfieldPositionRotation ExecOnLoadedPlayfield { get; private set; }
 
         Dictionary<int, IdPlayfieldPositionRotation> PlayerLastGoodPosition = new Dictionary<int, IdPlayfieldPositionRotation>();
+
+        class HoldPlayerInfo
+        {
+            public IdPositionRotation Destination;
+            public Stopwatch Start;
+        }
+        Dictionary<int, HoldPlayerInfo> HoldPlayerInfos = new Dictionary<int, HoldPlayerInfo>();
 
         FileSystemWatcher DBFileChangedWatcher;
 
@@ -65,6 +73,8 @@ namespace EmpyrionTeleporter
             DBFileChangedWatcher.Changed += (s, e) => TeleporterDB = TeleporterDB.ReadDB();
             DBFileChangedWatcher.EnableRaisingEvents = true;
 
+            Event_Entity_PosAndRot += EmpyrionTeleporter_Event_Entity_PosAndRot;
+
             ChatCommands.Add(new ChatCommand(@"/tt",                                            (I, A) => ExecAlignCommand(SubCommand.Teleport, TeleporterPermission.PublicAccess,  I, A), "Execute teleport"));
             ChatCommands.Add(new ChatCommand(@"/tt help",                                       (I, A) => ExecAlignCommand(SubCommand.Help,     TeleporterPermission.PublicAccess,  I, A), "Display help"));
             ChatCommands.Add(new ChatCommand(@"/tt back",                                       (I, A) => ExecAlignCommand(SubCommand.Back,     TeleporterPermission.PublicAccess,  I, A), "Teleports the player back to the last (good) position"));
@@ -74,6 +84,21 @@ namespace EmpyrionTeleporter
             ChatCommands.Add(new ChatCommand(@"/tt private (?<SourceId>\d+) (?<TargetId>\d+)",  (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PrivateAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for you only - must be initialized at {TargetId} too :-)"));
             ChatCommands.Add(new ChatCommand(@"/tt faction (?<SourceId>\d+) (?<TargetId>\d+)",  (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.FactionAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for your faction - must be initialized at {TargetId} too :-)"));
             ChatCommands.Add(new ChatCommand(@"/tt (?<SourceId>\d+) (?<TargetId>\d+)",          (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PublicAccess,  I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for everyone - must be initialized at {TargetId} too :-)"));
+        }
+
+        private void EmpyrionTeleporter_Event_Entity_PosAndRot(IdPositionRotation aIdPositionRotation)
+        {
+            if (HoldPlayerInfos.TryGetValue(aIdPositionRotation.id, out HoldPlayerInfo CurrentHoldPlayerInfo))
+            {
+                if(CurrentHoldPlayerInfo.Start.Elapsed.TotalSeconds < TeleporterDB.Configuration.HoldPlayerOnPositionAfterTeleport)
+                {
+                    Request_Entity_Teleport(CurrentHoldPlayerInfo.Destination);
+                }
+                else
+                {
+                    HoldPlayerInfos.Remove(aIdPositionRotation.id);
+                }
+            }
         }
 
         enum ChatType
@@ -189,6 +214,11 @@ namespace EmpyrionTeleporter
 
             if (!PlayerLastGoodPosition.ContainsKey(aPlayer.entityId)) PlayerLastGoodPosition.Add(aPlayer.entityId, null);
             PlayerLastGoodPosition[aPlayer.entityId] = new IdPlayfieldPositionRotation(aPlayer.entityId, aPlayer.playfield, aPlayer.pos, aPlayer.rot);
+
+            if (!HoldPlayerInfos.ContainsKey(aPlayer.entityId)) HoldPlayerInfos.Add(aPlayer.entityId, null);
+            HoldPlayerInfo CurrentHoldPlayerInfo;
+            HoldPlayerInfos[aPlayer.entityId] = CurrentHoldPlayerInfo = new HoldPlayerInfo() { Destination = new IdPositionRotation(aPlayer.entityId, aPlayer.pos, aPlayer.rot), Start = new Stopwatch() };
+            CurrentHoldPlayerInfo.Start.Start();
 
             if (FoundRoute.Playfield == aPlayer.playfield) Request_Entity_Teleport         (new IdPositionRotation         (aPlayer.entityId,                       GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
             else                                           Request_Player_ChangePlayerfield(new IdPlayfieldPositionRotation(aPlayer.entityId, FoundRoute.Playfield, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));

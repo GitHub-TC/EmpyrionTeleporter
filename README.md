@@ -1,7 +1,7 @@
-# Empyrion Teleporter
+ï»¿# Empyrion Teleporter
 ## FAQ
 
-Eine übersetzte Version findet ihr im EmpyrionTeleporter/bin Verzeichnis falls ihr die Mod nicht selber prüfen und compilieren wollt ;-)
+Eine Ã¼bersetzte Version findet ihr im EmpyrionTeleporter/bin Verzeichnis falls ihr die Mod nicht selber prÃ¼fen und compilieren wollt ;-)
 
 ### What is this?
 
@@ -17,15 +17,15 @@ Die Kommandos funktionieren NUR im Fraktionschat!
 
 #### Teleport
 
-* /tt => Teleport von dieser (vorher eingerichteten) Position zum Ziel durchführen
+* /tt => Teleport von dieser (vorher eingerichteten) Position zum Ziel durchfÃ¼hren
 * /tt help => Liste der Kommandos
-* /tt back => Falls ein Teleport schiefgegenen sein sollte kann sich der Spieler hiermit zu der Position VOR dem Teleport zurück teleportieren lassen
-* /tt delete <Id> => Löscht alle Teleporterouten von und nach <Id>
+* /tt back => Falls ein Teleport schiefgegenen sein sollte kann sich der Spieler hiermit zu der Position VOR dem Teleport zurÃ¼ck teleportieren lassen
+* /tt delete <Id> => LÃ¶scht alle Teleporterouten von und nach <Id>
 * /tt list <Id> => Listet alle Teleporterouten von und nach <Id> auf
 * /tt listall => Listet alle Teleporterouten auf (nur ab Moderator erlaubt)
-* /tt private <SourceId> <TargetId> => Privaten Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für den Spieler nutzbar ist.
-* /tt faction <SourceId> <TargetId> => Fraktions Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für die Fraktion nutzbar ist.
-* /tt <SourceId> <TargetId> => Öffentlichen Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten.
+* /tt private <SourceId> <TargetId> => Privaten Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur fÃ¼r den Spieler nutzbar ist.
+* /tt faction <SourceId> <TargetId> => Fraktions Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur fÃ¼r die Fraktion nutzbar ist.
+* /tt <SourceId> <TargetId> => Ã–ffentlichen Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten.
 
 Beispiel:
 - Basis: Akua (Id:1001)
@@ -46,7 +46,14 @@ Eine Konfiguration kann man in der Datei (wird beim ersten Start automatisch ers
 
 vornehmen.
 
+* HoldPlayerOnPositionAfterTeleport: Zeit in Sekunden die ein Spieler nach dem Teleport auf Position gehalten wird bis die Strukturen (hoffentlich) nachgeladen sind
+* CostsPerTeleporterPosition: Creditkosten fÃ¼r das Setzen eines Teleporterpunktes
+* CostsPerTeleport: Creditkosten fÃ¼r das Benutzen eines Teleporterpunktes
+* AllowedStructures: Liste der erlaubten Strukturen fÃ¼r Teleporterpunkte hierbei sind folgende Werte erlaubt
+  - EntityType: BA, CV, SV, HV 
+  - FactionGroups: Faction, Player, Alien, Admin
+
 ### Is that it?
-Zunächst erstmal und damit viel Spaß beim Teleportieren wünscht euch
+ZunÃ¤chst erstmal und damit viel SpaÃŸ beim Teleportieren wÃ¼nscht euch
 
 ASTIC/TC
