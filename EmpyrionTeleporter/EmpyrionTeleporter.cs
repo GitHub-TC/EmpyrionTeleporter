@@ -120,8 +120,8 @@ namespace EmpyrionTeleporter
 
                     if      (SourceStructure == null) AlertPlayer(P.entityId, $"Structure not found: {aSourceId}");
                     else if (TargetStructure == null) AlertPlayer(P.entityId, $"Structure not found: {aTargetId}");
-                    else if (!CheckPermission(SourceStructure, TeleporterDB.Configuration)) AlertPlayer(P.entityId, $"Structure not allowed: {aSourceId}");
-                    else if (!CheckPermission(TargetStructure, TeleporterDB.Configuration)) AlertPlayer(P.entityId, $"Structure not allowed: {aTargetId}");
+                    else if (!CheckPermission(SourceStructure, TeleporterDB.Configuration)) AlertPlayer(P.entityId, $"Structure not allowed: {aSourceId} {(EntityType)SourceStructure.Data.type}/{(FactionGroups)SourceStructure.Data.factionGroup}");
+                    else if (!CheckPermission(TargetStructure, TeleporterDB.Configuration)) AlertPlayer(P.entityId, $"Structure not allowed: {aTargetId} {(EntityType)TargetStructure.Data.type}/{(FactionGroups)TargetStructure.Data.factionGroup}");
                     else if (P.credits < TeleporterDB.Configuration.CostsPerTeleporterPosition) AlertPlayer(P.entityId, $"You need {TeleporterDB.Configuration.CostsPerTeleporterPosition} credits ;-)");
                     else
                     {
@@ -139,8 +139,7 @@ namespace EmpyrionTeleporter
         private bool CheckPermission(TeleporterDB.PlayfieldStructureInfo aStructure, Configuration aConfiguration)
         {
             return aConfiguration.AllowedStructures.Any(C => 
-                C.CoreType == (CoreType)(aStructure.Data.coreType == -1 ? CoreType.Player_Core : (CoreType)aStructure.Data.coreType) && 
-                C.EntityType == (EntityType)aStructure.Data.type && 
+                C.EntityType    == (EntityType)   aStructure.Data.type && 
                 C.FactionGroups == (FactionGroups)aStructure.Data.factionGroup
             );
         }
@@ -254,7 +253,12 @@ namespace EmpyrionTeleporter
         {
             Request_Player_Info(aPlayerId.ToId(), (P) =>
             {
-                ShowDialog(aPlayerId, P, "Commands", String.Join("\n", GetChatCommandsForPermissionLevel((PermissionType)P.permission).Select(x => x.ToString()).ToArray()));
+                ShowDialog(aPlayerId, P, "Commands",
+                    "\n" + String.Join("\n", GetChatCommandsForPermissionLevel((PermissionType)P.permission).Select(x => x.ToString()).ToArray()) +
+                    $"\n\nCosts teleporter set: {TeleporterDB.Configuration.CostsPerTeleporterPosition} credits" +
+                    $"\nCosts teleporter use: {TeleporterDB.Configuration.CostsPerTeleport} credits" +
+                    TeleporterDB.Configuration.AllowedStructures.Aggregate("\n\nTeleporter allowed at:", (s, a) => s + $"\n {a.EntityType}/{a.FactionGroups}")
+                    );
             });
         }
 
