@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Eleon.Modding;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -19,7 +20,7 @@ namespace EmpyrionTeleporter.Tests
         }
 
         [TestMethod]
-        public void TestMethod1()
+        public void TestTeleportDB()
         {
             var G = new GlobalStructureList() { globalStructures = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.List<GlobalStructureInfo>>() };
             G.globalStructures.Add("Akua", (new GlobalStructureInfo[]{
@@ -46,6 +47,9 @@ namespace EmpyrionTeleporter.Tests
         [TestMethod]
         public void TestDedicatedYaml()
         {
+            var CurrentAssembly = Assembly.GetAssembly(typeof(EmpyrionTeleporter));
+            var x = $"\n\n{CurrentAssembly.GetAttribute<AssemblyTitleAttribute>()?.Title} {CurrentAssembly.GetAttribute<AssemblyFileVersionAttribute>()?.Version} by {CurrentAssembly.GetAttribute<AssemblyCompanyAttribute>()?.Company}";
+
             var Dedi = new EmpyrionConfiguration.DedicatedYamlStruct(Path.Combine(EmpyrionConfiguration.ProgramPath, @"..\..\" + EmpyrionConfiguration.DedicatedFilename));
 
             Assert.AreEqual("DediGame",             Dedi.SaveGameName);
