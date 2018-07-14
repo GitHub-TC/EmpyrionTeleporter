@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Threading;
 using System.IO;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace EmpyrionTeleporter
 {
@@ -21,9 +22,12 @@ namespace EmpyrionTeleporter
             return aAssembly.GetCustomAttributes(typeof(T), false).OfType<T>().FirstOrDefault();
         }
 
+        static Regex GetCommand = new Regex(@"(?<cmd>(\w|\/|\s)+)");
+
         public static string MsgString(this ChatCommand aCommand)
         {
-            return $"{aCommand.invocationPattern}{aCommand.paramNames.Aggregate(" ", (S, P) => S + P + " ")}: {aCommand.description}";
+            var CmdString = GetCommand.Match(aCommand.invocationPattern).Groups["cmd"]?.Value ?? aCommand.invocationPattern;
+            return $"[c][ff00ff]{CmdString}[-][/c]{aCommand.paramNames.Aggregate(" ", (S, P) => S + $"<[c][00ff00]{P}[-][/c]> ")}: {aCommand.description}";
         }
 
     }
@@ -70,16 +74,16 @@ namespace EmpyrionTeleporter
             InitializeTeleporterDB();
             InitializeTeleporterDBFileWatcher();
 
-            ChatCommands.Add(new ChatCommand(@"/tt", (I, A) => ExecAlignCommand(SubCommand.Teleport, TeleporterPermission.PublicAccess, I, A), "Execute teleport"));
-            ChatCommands.Add(new ChatCommand(@"/tt help", (I, A) => ExecAlignCommand(SubCommand.Help, TeleporterPermission.PublicAccess, I, A), "Display help"));
-            ChatCommands.Add(new ChatCommand(@"/tt back", (I, A) => ExecAlignCommand(SubCommand.Back, TeleporterPermission.PublicAccess, I, A), "Teleports the player back to the last (good) position"));
-            ChatCommands.Add(new ChatCommand(@"/tt delete (?<Id>\d+)", (I, A) => ExecAlignCommand(SubCommand.Delete, TeleporterPermission.PublicAccess, I, A), "Delete all teleportdata from {Id}"));
-            ChatCommands.Add(new ChatCommand(@"/tt list (?<Id>\d+)", (I, A) => ExecAlignCommand(SubCommand.List, TeleporterPermission.PublicAccess, I, A), "List all teleportdata from {Id}"));
-            ChatCommands.Add(new ChatCommand(@"/tt listall", (I, A) => ExecAlignCommand(SubCommand.ListAll, TeleporterPermission.PublicAccess, I, A), "List all teleportdata", PermissionType.Moderator));
-            ChatCommands.Add(new ChatCommand(@"/tt cleanup", (I, A) => ExecAlignCommand(SubCommand.CleanUp, TeleporterPermission.PublicAccess, I, A), "Removes all teleportdata to deleted structures", PermissionType.Moderator));
-            ChatCommands.Add(new ChatCommand(@"/tt private (?<SourceId>\d+) (?<TargetId>\d+)", (I, A) => ExecAlignCommand(SubCommand.Save, TeleporterPermission.PrivateAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for you only - must be initialized at {TargetId} too :-)"));
-            ChatCommands.Add(new ChatCommand(@"/tt faction (?<SourceId>\d+) (?<TargetId>\d+)", (I, A) => ExecAlignCommand(SubCommand.Save, TeleporterPermission.FactionAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for your faction - must be initialized at {TargetId} too :-)"));
-            ChatCommands.Add(new ChatCommand(@"/tt (?<SourceId>\d+) (?<TargetId>\d+)", (I, A) => ExecAlignCommand(SubCommand.Save, TeleporterPermission.PublicAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for everyone - must be initialized at {TargetId} too :-)"));
+            ChatCommands.Add(new ChatCommand(@"/tt",                                            (I, A) => ExecAlignCommand(SubCommand.Teleport, TeleporterPermission.PublicAccess,  I, A), "Execute teleport"));
+            ChatCommands.Add(new ChatCommand(@"/tt help",                                       (I, A) => ExecAlignCommand(SubCommand.Help,     TeleporterPermission.PublicAccess,  I, A), "Display help"));
+            ChatCommands.Add(new ChatCommand(@"/tt back",                                       (I, A) => ExecAlignCommand(SubCommand.Back,     TeleporterPermission.PublicAccess,  I, A), "Teleports the player back to the last (good) position"));
+            ChatCommands.Add(new ChatCommand(@"/tt delete (?<Id>\d+)",                          (I, A) => ExecAlignCommand(SubCommand.Delete,   TeleporterPermission.PublicAccess,  I, A), "Delete all teleportdata from {Id}"));
+            ChatCommands.Add(new ChatCommand(@"/tt list (?<Id>\d+)",                            (I, A) => ExecAlignCommand(SubCommand.List,     TeleporterPermission.PublicAccess,  I, A), "List all teleportdata from {Id}"));
+            ChatCommands.Add(new ChatCommand(@"/tt listall",                                    (I, A) => ExecAlignCommand(SubCommand.ListAll,  TeleporterPermission.PublicAccess,  I, A), "List all teleportdata", PermissionType.Moderator));
+            ChatCommands.Add(new ChatCommand(@"/tt cleanup",                                    (I, A) => ExecAlignCommand(SubCommand.CleanUp,  TeleporterPermission.PublicAccess,  I, A), "Removes all teleportdata to deleted structures", PermissionType.Moderator));
+            ChatCommands.Add(new ChatCommand(@"/tt private (?<SourceId>\d+) (?<TargetId>\d+)",  (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PrivateAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for you only - must be initialized at {TargetId} too :-)"));
+            ChatCommands.Add(new ChatCommand(@"/tt faction (?<SourceId>\d+) (?<TargetId>\d+)",  (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.FactionAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for your faction - must be initialized at {TargetId} too :-)"));
+            ChatCommands.Add(new ChatCommand(@"/tt (?<SourceId>\d+) (?<TargetId>\d+)",          (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PublicAccess,  I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for everyone - must be initialized at {TargetId} too :-)"));
         }
 
         private void InitializeTeleporterDBFileWatcher()
@@ -123,13 +127,13 @@ namespace EmpyrionTeleporter
 
             switch (aCommand)
             {
-                case SubCommand.Help: DisplayHelp(info.playerId); break;
-                case SubCommand.Back: ExecTeleportPlayerBack(info.playerId); break;
-                case SubCommand.Delete: DeleteTeleporterRoutes(info.playerId, getIntParam(args, "Id")); break;
-                case SubCommand.List: ListTeleporterRoutes(info.playerId, getIntParam(args, "Id")); break;
-                case SubCommand.ListAll: ListAllTeleporterRoutes(info.playerId); break;
-                case SubCommand.CleanUp: CleanUpTeleporterRoutes(info.playerId); break;
-                case SubCommand.Save: SaveTeleporterRoute(info.playerId, aPermission, getIntParam(args, "SourceId"), getIntParam(args, "TargetId")); break;
+                case SubCommand.Help    : DisplayHelp(info.playerId); break;
+                case SubCommand.Back    : ExecTeleportPlayerBack(info.playerId); break;
+                case SubCommand.Delete  : DeleteTeleporterRoutes(info.playerId, getIntParam(args, "Id")); break;
+                case SubCommand.List    : ListTeleporterRoutes(info.playerId, getIntParam(args, "Id")); break;
+                case SubCommand.ListAll : ListAllTeleporterRoutes(info.playerId); break;
+                case SubCommand.CleanUp : CleanUpTeleporterRoutes(info.playerId); break;
+                case SubCommand.Save    : SaveTeleporterRoute(info.playerId, aPermission, getIntParam(args, "SourceId"), getIntParam(args, "TargetId")); break;
                 case SubCommand.Teleport: TeleportPlayer(info.playerId); break;
             }
         }
@@ -322,7 +326,7 @@ namespace EmpyrionTeleporter
             Request_ShowDialog_SinglePlayer(new DialogBoxData()
             {
                 Id      = aPlayerId,
-                MsgText = $"{aTitle}: {aPlayer.playerName} with permission {(PermissionType)aPlayer.permission}\n" + aMessage,
+                MsgText = $"{aTitle}: [c][ffffff]{aPlayer.playerName}[-][/c] with permission [c][ffffff]{(PermissionType)aPlayer.permission}[-][/c]\n" + aMessage,
             });
         }
 
@@ -331,13 +335,14 @@ namespace EmpyrionTeleporter
             Request_Player_Info(aPlayerId.ToId(), (P) =>
             {
                 var CurrentAssembly = Assembly.GetAssembly(this.GetType());
+                //[c][hexid][-][/c]    [c][019245]test[-][/c].
 
                 ShowDialog(aPlayerId, P, "Commands",
                     "\n" + String.Join("\n", GetChatCommandsForPermissionLevel((PermissionType)P.permission).Select(C => C.MsgString()).ToArray()) +
-                    $"\n\nCosts teleporter set: {TeleporterDB.Configuration.CostsPerTeleporterPosition} credits" +
-                    $"\nCosts teleporter use: {TeleporterDB.Configuration.CostsPerTeleport} credits" +
-                    TeleporterDB.Configuration.AllowedStructures.Aggregate("\n\nTeleporter allowed at:", (s, a) => s + $"\n {a.EntityType}/{a.FactionGroups}") +
-                    $"\n\n{CurrentAssembly.GetAttribute<AssemblyTitleAttribute>()?.Title} by {CurrentAssembly.GetAttribute<AssemblyCompanyAttribute>()?.Company} Version:{CurrentAssembly.GetAttribute<AssemblyFileVersionAttribute>()?.Version}"
+                    $"\n\nCosts teleporter set: [c][ff0000]{TeleporterDB.Configuration.CostsPerTeleporterPosition}[-][/c] credits" +
+                    $"\nCosts teleporter use: [c][ff0000]{TeleporterDB.Configuration.CostsPerTeleport}[-][/c] credits" +
+                    TeleporterDB.Configuration.AllowedStructures.Aggregate("\n\n[c][00ffff]Teleporter allowed at:[-][/c]", (s, a) => s + $"\n {a.EntityType}/{a.FactionGroups}") +
+                    $"\n\n[c][c0c0c0]{CurrentAssembly.GetAttribute<AssemblyTitleAttribute>()?.Title} by {CurrentAssembly.GetAttribute<AssemblyCompanyAttribute>()?.Company} Version:{CurrentAssembly.GetAttribute<AssemblyFileVersionAttribute>()?.Version}[-][/c]"
                     );
             });
         }
