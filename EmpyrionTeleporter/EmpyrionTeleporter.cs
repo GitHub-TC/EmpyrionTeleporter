@@ -247,19 +247,14 @@ namespace EmpyrionTeleporter
         {
             new Thread(new ThreadStart(() =>
             {
-                bool TargetReached = false;
                 var TryTimer = new Stopwatch();
                 TryTimer.Start();
-                while(TryTimer.ElapsedMilliseconds < (TeleporterDB.Configuration.HoldPlayerOnPositionAfterTeleport * 1000) && !TargetReached)
+                while (TryTimer.ElapsedMilliseconds < (TeleporterDB.Configuration.HoldPlayerOnPositionAfterTeleport * 1000))
                 {
                     Thread.Sleep(2000);
                     Request_Player_Info(aPlayerId.ToId(), P => {
                         if (Vector3.Distance(GetVector3(P.pos), aTargetPos) > 3) ActionTeleportPlayer();
-                        else
-                        {
-                            InformPlayer(aPlayerId, "Target reached.");
-                            TargetReached = true;
-                        }
+                        else                                                     InformPlayer(aPlayerId, $"Target reached please wait for {TeleporterDB.Configuration.HoldPlayerOnPositionAfterTeleport - (int)(TryTimer.ElapsedMilliseconds / 1000)} sec.");
                     }, (E) => InformPlayer(aPlayerId, "Target reached. {E}"));
                 }
             })).Start();
