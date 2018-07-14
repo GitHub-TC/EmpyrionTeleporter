@@ -25,6 +25,7 @@ Die Kommandos funktionieren NUR im Fraktionschat!
 * /tt delete <Id> => Löscht alle Teleporterouten von und nach <Id>
 * /tt list <Id> => Listet alle Teleporterouten von und nach <Id> auf
 * /tt listall => Listet alle Teleporterouten auf (nur ab Moderator erlaubt)
+* /tt cleanup => Löscht alle Teleporterrouten die zu gelöschten Strukturen führen (only Moderators can use it)
 * /tt private <SourceId> <TargetId> => Privaten Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für den Spieler nutzbar ist.
 * /tt faction <SourceId> <TargetId> => Fraktions Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für die Fraktion nutzbar ist.
 * /tt <SourceId> <TargetId> => Öffentlichen Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten.
@@ -44,7 +45,7 @@ HINWEIS: Da Empyrion es mit den Positionen beim Teleport nicht so genau nimmt so
 ### Konfiguration
 Eine Konfiguration kann man in der Datei (wird beim ersten Start automatisch erstellt)
 
-[Empyrion Directory]\Content\Mods\EmpyrionTeleporter\TeleporterDB.xml
+[Empyrion Directory]\Saves\Games\[SaveGameName]\Mods\EmpyrionTeleporter\TeleporterDB.xml
 
 vornehmen.
 
@@ -92,6 +93,7 @@ All commands only work in faction chat!
 * /tt delete <Id> : removes the teleport connection regarding this ID
 * /tt list <Id> : show all teleport connections from and to this ID
 * /tt listall : show all teleport connections (only Moderators can use it)
+* /tt cleanup : remove all teleport connections to deleted structures (only Moderators can use it)
 * /tt private <SourceId> <TargetId> : set a private teleport location from the player current position relative to the source ID and target ID. Private means only that player can use this teleporter
 * /tt faction <SourceId> <TargetId> : set a faction teleport location from the player current position relative to the source ID and target ID. Faction means all of that faction can use this teleporter
 * /tt <SourceId> <TargetId> : public teleporter from current position
@@ -111,7 +113,7 @@ HINWEIS: Keep in mind that before you use the teleport commands you need to wait
 ### Configuration
 You can configure the mod in
 
-[Empyrion Directory]\Content\Mods\EmpyrionTeleporter\TeleporterDB.xml
+[Empyrion Directory]\Saves\Games\[SaveGameName]\Mods\EmpyrionTeleporter\TeleporterDB.xml
 
 (will be created with the first start automatically).
 

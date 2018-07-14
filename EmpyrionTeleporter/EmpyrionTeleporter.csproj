@@ -52,9 +52,13 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
     <Reference Include="System.XML" />
+    <Reference Include="YamlDotNet, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\YamlDotNet.5.0.1\lib\net35\YamlDotNet.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration.cs" />
+    <Compile Include="EmpyrionConfiguration.cs" />
     <Compile Include="EmpyrionTeleporter.cs" />
     <Compile Include="Matrix4x4.cs" />
     <Compile Include="Plane.cs" />

@@ -33,12 +33,7 @@ namespace EmpyrionTeleporter
 
         Dictionary<int, IdPlayfieldPositionRotation> PlayerLastGoodPosition = new Dictionary<int, IdPlayfieldPositionRotation>();
 
-        class HoldPlayerInfo
-        {
-            public IdPositionRotation Destination;
-            public Stopwatch Start;
-        }
-        Dictionary<int, HoldPlayerInfo> HoldPlayerInfos = new Dictionary<int, HoldPlayerInfo>();
+        public string TeleporterDBFilename { get; set; }
 
         FileSystemWatcher DBFileChangedWatcher;
 
@@ -49,6 +44,7 @@ namespace EmpyrionTeleporter
             Delete,
             List,
             ListAll,
+            CleanUp,
             Save,
             Teleport
         }
@@ -58,22 +54,10 @@ namespace EmpyrionTeleporter
             GameAPI = aGameAPI;
             verbose = true;
 
-            log($"**HandleEmpyrionTeleporter loaded");
+            log($"**HandleEmpyrionTeleporter loaded: {string.Join(" ", Environment.GetCommandLineArgs())}");
 
-            TeleporterDB.LogDB = log;
-            TeleporterDB = TeleporterDB.ReadDB();
-            TeleporterDB.SaveDB();
-
-            DBFileChangedWatcher = new FileSystemWatcher
-            {
-                Path         = Path.GetDirectoryName(Path.Combine(Directory.GetCurrentDirectory(), TeleporterDB.DBFileName)),
-                NotifyFilter = NotifyFilters.LastWrite,
-                Filter       = Path.GetFileName(Path.Combine(Directory.GetCurrentDirectory(), TeleporterDB.DBFileName))
-            };
-            DBFileChangedWatcher.Changed += (s, e) => TeleporterDB = TeleporterDB.ReadDB();
-            DBFileChangedWatcher.EnableRaisingEvents = true;
-
-            Event_Entity_PosAndRot += EmpyrionTeleporter_Event_Entity_PosAndRot;
+            InitializeTeleporterDB();
+            InitializeTeleporterDBFileWatcher();
 
             ChatCommands.Add(new ChatCommand(@"/tt",                                            (I, A) => ExecAlignCommand(SubCommand.Teleport, TeleporterPermission.PublicAccess,  I, A), "Execute teleport"));
             ChatCommands.Add(new ChatCommand(@"/tt help",                                       (I, A) => ExecAlignCommand(SubCommand.Help,     TeleporterPermission.PublicAccess,  I, A), "Display help"));
@@ -81,25 +65,38 @@ namespace EmpyrionTeleporter
             ChatCommands.Add(new ChatCommand(@"/tt delete (?<Id>\d+)",                          (I, A) => ExecAlignCommand(SubCommand.Delete,   TeleporterPermission.PublicAccess,  I, A), "Delete all teleportdata from {Id}"));
             ChatCommands.Add(new ChatCommand(@"/tt list (?<Id>\d+)",                            (I, A) => ExecAlignCommand(SubCommand.List,     TeleporterPermission.PublicAccess,  I, A), "List all teleportdata from {Id}"));
             ChatCommands.Add(new ChatCommand(@"/tt listall",                                    (I, A) => ExecAlignCommand(SubCommand.ListAll,  TeleporterPermission.PublicAccess,  I, A), "List all teleportdata", PermissionType.Moderator));
+            ChatCommands.Add(new ChatCommand(@"/tt cleanup",                                    (I, A) => ExecAlignCommand(SubCommand.CleanUp,  TeleporterPermission.PublicAccess,  I, A), "Removes all teleportdata to deleted structures", PermissionType.Moderator));
             ChatCommands.Add(new ChatCommand(@"/tt private (?<SourceId>\d+) (?<TargetId>\d+)",  (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PrivateAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for you only - must be initialized at {TargetId} too :-)"));
             ChatCommands.Add(new ChatCommand(@"/tt faction (?<SourceId>\d+) (?<TargetId>\d+)",  (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.FactionAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for your faction - must be initialized at {TargetId} too :-)"));
             ChatCommands.Add(new ChatCommand(@"/tt (?<SourceId>\d+) (?<TargetId>\d+)",          (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PublicAccess,  I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for everyone - must be initialized at {TargetId} too :-)"));
         }
 
-        private void EmpyrionTeleporter_Event_Entity_PosAndRot(IdPositionRotation aIdPositionRotation)
+        private void InitializeTeleporterDBFileWatcher()
         {
-            if (HoldPlayerInfos.TryGetValue(aIdPositionRotation.id, out HoldPlayerInfo CurrentHoldPlayerInfo))
+            DBFileChangedWatcher = new FileSystemWatcher
             {
-                if(CurrentHoldPlayerInfo.Start.Elapsed.TotalSeconds < TeleporterDB.Configuration.HoldPlayerOnPositionAfterTeleport)
-                {
-                    Request_Entity_Teleport(CurrentHoldPlayerInfo.Destination);
-                }
-                else
-                {
-                    HoldPlayerInfos.Remove(aIdPositionRotation.id);
-                }
-            }
+                Path         = Path.GetDirectoryName(TeleporterDBFilename),
+                NotifyFilter = NotifyFilters.LastWrite,
+                Filter       = Path.GetFileName(TeleporterDBFilename)
+            };
+            DBFileChangedWatcher.Changed += (s, e) => TeleporterDB = TeleporterDB.ReadDB(TeleporterDBFilename);
+            DBFileChangedWatcher.EnableRaisingEvents = true;
         }
+
+        private void InitializeTeleporterDB()
+        {
+            TeleporterDBFilename = Path.Combine(EmpyrionConfiguration.ProgramPath, @"Saves\Games\" + EmpyrionConfiguration.DedicatedYaml.SaveGameName + @"\Mods\EmpyrionTeleporter\TeleporterDB.xml");
+            Directory.CreateDirectory(Path.GetDirectoryName(TeleporterDBFilename));
+
+            // Move DB file to new location
+            var OldDB = Path.Combine(Directory.GetCurrentDirectory(), @"Content\Mods\EmpyrionTeleporter\TeleporterDB.xml");
+            if (File.Exists(OldDB)) File.Move(OldDB, TeleporterDBFilename);
+
+            TeleporterDB.LogDB = log;
+            TeleporterDB = TeleporterDB.ReadDB(TeleporterDBFilename);
+            TeleporterDB.SaveDB(TeleporterDBFilename);
+        }
+
 
         enum ChatType
         {
@@ -120,17 +117,33 @@ namespace EmpyrionTeleporter
                 case SubCommand.Delete  : DeleteTeleporterRoutes    (info.playerId, getIntParam(args, "Id")); break;
                 case SubCommand.List    : ListTeleporterRoutes      (info.playerId, getIntParam(args, "Id")); break;
                 case SubCommand.ListAll : ListAllTeleporterRoutes   (info.playerId); break;
+                case SubCommand.CleanUp : CleanUpTeleporterRoutes   (info.playerId); break;
                 case SubCommand.Save    : SaveTeleporterRoute       (info.playerId, aPermission, getIntParam(args, "SourceId"), getIntParam(args, "TargetId")); break;
                 case SubCommand.Teleport: TeleportPlayer(info.playerId); break; 
             }
+        }
+
+        private void CleanUpTeleporterRoutes(int aPlayerId)
+        {
+            Request_GlobalStructure_List(G => {
+                var GlobalFlatIdList     = G.globalStructures           .Aggregate(new List<int>(), (L, P) => { L.AddRange(P.Value.Select(S => S.id)); return L; });
+                var TeleporterFlatIdList = TeleporterDB.TeleporterRoutes.Aggregate(new List<int>(), (L, P) => { L.Add(P.A.Id); L.Add(P.B.Id); return L; });
+
+                var DeleteList = TeleporterFlatIdList.Where(I => !GlobalFlatIdList.Contains(I)).Distinct();
+                var DelCount   = DeleteList.Aggregate(0, (C, I) => C + TeleporterDB.Delete(I));
+                log($"CleanUpTeleporterRoutes: {DelCount} Structures: {DeleteList.Aggregate("", (S, I) => S + "," + I)}");
+                InformPlayer(aPlayerId, $"CleanUp: {DelCount} TeleporterRoutes");
+
+                if (DelCount > 0) SaveTeleporterDB();
+            });
         }
 
         private void TeleportPlayer(int aPlayerId)
         {
             Request_GlobalStructure_List(G => 
                 Request_Player_Info(aPlayerId.ToId(), P => {
-                    if (P.credits < TeleporterDB.Configuration.CostsPerTeleport) AlertPlayer(P.entityId, $"You need {TeleporterDB.Configuration.CostsPerTeleport} credits ;-)");
-                    else if (ExecTeleportPlayer(G, P) && TeleporterDB.Configuration.CostsPerTeleport > 0) Request_Player_SetCredits(new IdCredits(P.entityId, P.credits - TeleporterDB.Configuration.CostsPerTeleport));
+                    if      (P.credits < TeleporterDB.Configuration.CostsPerTeleport) AlertPlayer(P.entityId, $"You need {TeleporterDB.Configuration.CostsPerTeleport} credits ;-)");
+                    else if (ExecTeleportPlayer(G, P, aPlayerId) && TeleporterDB.Configuration.CostsPerTeleport > 0) Request_Player_SetCredits(new IdCredits(P.entityId, P.credits - TeleporterDB.Configuration.CostsPerTeleport));
                 }));
         }
 
@@ -151,14 +164,21 @@ namespace EmpyrionTeleporter
                     else
                     {
                         TeleporterDB.AddRoute(G, aPermission, aSourceId, aTargetId, P);
-                        DBFileChangedWatcher.EnableRaisingEvents = false;
-                        TeleporterDB.SaveDB();
-                        DBFileChangedWatcher.EnableRaisingEvents = true;
+                        SaveTeleporterDB();
 
                         if (TeleporterDB.Configuration.CostsPerTeleporterPosition > 0) Request_Player_SetCredits(new IdCredits(P.entityId, P.credits - TeleporterDB.Configuration.CostsPerTeleporterPosition));
+
+                        ShowDialog(aPlayerId, P, "Teleporters", $"\nTeleporter set\n{aSourceId} => {aTargetId}");
                     }
                 });
             });
+        }
+
+        private void SaveTeleporterDB()
+        {
+            DBFileChangedWatcher.EnableRaisingEvents = false;
+            TeleporterDB.SaveDB(TeleporterDBFilename);
+            DBFileChangedWatcher.EnableRaisingEvents = true;
         }
 
         private bool CheckPermission(TeleporterDB.PlayfieldStructureInfo aStructure, Configuration aConfiguration)
@@ -175,18 +195,14 @@ namespace EmpyrionTeleporter
             {
                 ShowDialog(aPlayerId, P, "Teleporters", TeleporterDB.TeleporterRoutes.OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString() + "\n"));
             });
-
-            //Request_GlobalStructure_List(G =>
-            //    File.AppendAllText("info.txt", $"\n{G.globalStructures.Aggregate("", (s, p) => s + p.Key + ":" + p.Value.Aggregate("", (ss, pp) => ss + $" {pp.id}/{pp.name}/{pp.coreType}/{pp.type}/{pp.factionGroup}"))}")
-            //);
         }
 
         private void DeleteTeleporterRoutes(int aPlayerId, int aStructureId)
         {
             Request_Player_Info(aPlayerId.ToId(), (P) =>
             {
-                var deletedCount = TeleporterDB.Delete(aStructureId, P);
-                TeleporterDB.SaveDB();
+                var deletedCount = TeleporterDB.Delete(aStructureId);
+                SaveTeleporterDB();
 
                 AlertPlayer(P.entityId, $"Delete {deletedCount} teleporter from {aStructureId}");
             });
@@ -200,13 +216,13 @@ namespace EmpyrionTeleporter
             });
         }
 
-        private bool ExecTeleportPlayer(GlobalStructureList aGlobalStructureList, PlayerInfo aPlayer)
+        private bool ExecTeleportPlayer(GlobalStructureList aGlobalStructureList, PlayerInfo aPlayer, int aPlayerId)
         {
             var FoundRoute = TeleporterDB.SearchRoute(aGlobalStructureList, aPlayer);
             if (FoundRoute == null)
             {
                 InformPlayer(aPlayer.entityId, "No teleporter position here :-( wait 2min for structure update and try it again please.");
-                log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}-> no route found for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'");
+                log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}/{aPlayer.clientId} -> no route found for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'");
                 return false;
             }
 
@@ -215,15 +231,38 @@ namespace EmpyrionTeleporter
             if (!PlayerLastGoodPosition.ContainsKey(aPlayer.entityId)) PlayerLastGoodPosition.Add(aPlayer.entityId, null);
             PlayerLastGoodPosition[aPlayer.entityId] = new IdPlayfieldPositionRotation(aPlayer.entityId, aPlayer.playfield, aPlayer.pos, aPlayer.rot);
 
-            if (!HoldPlayerInfos.ContainsKey(aPlayer.entityId)) HoldPlayerInfos.Add(aPlayer.entityId, null);
-            HoldPlayerInfo CurrentHoldPlayerInfo;
-            HoldPlayerInfos[aPlayer.entityId] = CurrentHoldPlayerInfo = new HoldPlayerInfo() { Destination = new IdPositionRotation(aPlayer.entityId, aPlayer.pos, aPlayer.rot), Start = new Stopwatch() };
-            CurrentHoldPlayerInfo.Start.Start();
+            Action ActionTeleportPlayer = () =>
+            {
+                if (FoundRoute.Playfield == aPlayer.playfield)  Request_Entity_Teleport         (new IdPositionRotation         (aPlayer.entityId,                       GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
+                else                                            Request_Player_ChangePlayerfield(new IdPlayfieldPositionRotation(aPlayer.entityId, FoundRoute.Playfield, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
+            };
 
-            if (FoundRoute.Playfield == aPlayer.playfield) Request_Entity_Teleport         (new IdPositionRotation         (aPlayer.entityId,                       GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
-            else                                           Request_Player_ChangePlayerfield(new IdPlayfieldPositionRotation(aPlayer.entityId, FoundRoute.Playfield, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
+            ActionTeleportPlayer();
+            CheckPlayerStableTargetPos(aPlayerId, ActionTeleportPlayer, FoundRoute.Position);
 
             return true;
+        }
+
+        private void CheckPlayerStableTargetPos(int aPlayerId, Action ActionTeleportPlayer, Vector3 aTargetPos)
+        {
+            new Thread(new ThreadStart(() =>
+            {
+                bool TargetReached = false;
+                var TryTimer = new Stopwatch();
+                TryTimer.Start();
+                while(TryTimer.ElapsedMilliseconds < (TeleporterDB.Configuration.HoldPlayerOnPositionAfterTeleport * 1000) && !TargetReached)
+                {
+                    Thread.Sleep(2000);
+                    Request_Player_Info(aPlayerId.ToId(), P => {
+                        if (Vector3.Distance(GetVector3(P.pos), aTargetPos) > 3) ActionTeleportPlayer();
+                        else
+                        {
+                            InformPlayer(aPlayerId, "Target reached.");
+                            TargetReached = true;
+                        }
+                    }, (E) => InformPlayer(aPlayerId, "Target reached. {E}"));
+                }
+            })).Start();
         }
 
         private void ExecTeleportPlayerBack(int aPlayerId)

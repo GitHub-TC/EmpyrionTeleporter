@@ -1,0 +1,75 @@
+### Dedicated server settings
+### To use your own dedicated.yaml (e.g., "MyDedicatedConfig.yaml"), add "-dedicated MyDedicatedConfig.yaml" to the corresponding batch file
+
+ServerConfig:
+    Srv_Port: 30000
+    Srv_Name: My Server
+    # Srv_Password: Abc
+    # Srv_MaxPlayers: 8
+
+    # Idle playfield servers held in reserve. For busy public servers, we recommend at least 2 (default = 1)
+    # Valid range: 0..10
+    # Srv_ReservePlayfields: 1
+
+    ### Server description shown in Server Browser
+    ### max 127 chars: "-------------------------------------------------------------------------------------------------------------------------------"
+    # Srv_Description: "Server info, can contain [b]bold[/b] text or a [u][url=empyriongame.com]link[/url][/u]."
+
+    ### Set the following parameter to false (or comment the line out) if you want to hide your server in the Server Browser 
+    ### If server is not visible you can connect via IP or via joining a friend's game.
+    Srv_Public: true
+    
+    ### All playfield servers will be automatically stopped every <n> real time hours. Players will get some warning messages before
+    # Srv_StopPeriod: 48
+
+    ### Activate Telnet server
+    # Tel_Enabled: true   
+    # Tel_Port: 30004
+    # Tel_Pwd: Abc
+
+    ### Activate Easy Anti Cheat (clients have to enable EAC via Options -> Misc to connect to a EAC protected server)
+    EACActive: true
+
+    ### Location of save game folder    
+    # SaveDirectory: Saves
+
+    ### Restrict allowed Blueprint size class: restricted types are not allowed to be produced or spawned
+    # 1 = allow only small blueprints, ... , 10 = allow very large blueprints, ..., 50 = allow gigantic blueprints, ... , 0 = no limits
+    ### Warning: large blueprints can have very strong performance impact!
+    MaxAllowedSizeClass: 10
+
+    ### Restrict Blueprint types allowed for production in factory
+    ### None      = Blueprint system completely disabled
+    ### StockOnly = only stock blueprints can be produced
+    ### All       = all types allowed (default)
+    AllowedBlueprints: All
+
+    ### Timeout in seconds after which a playfield server process will be killed (and all players on it disconnected) if it does no longer send heartbeat messages to the dedi 
+    ### Set 0 to disable this feature
+    HeartbeatServer: 15
+
+    ### Timeout in seconds after which a client will be disconnected if it does no longer send heartbeat messages to the dedi
+    ### Set 0 to disable this feature
+    # HeartbeatClient: 30
+
+    ### Enable extra log outputs (for debugging purposes)
+    ### Defined flags: (add together the values if more than one group should be active at the same time)
+    ### 1 = EAC
+    ### 2 = EAC_all_details (includes EAC - Note: this generates a lot of log lines)
+    # LogFlags: 2
+
+    ### Uncomment the following line if you want to prohibit Steam Family Sharers playing (only the game owner can then play)
+    # DisableSteamFamilySharing: True
+
+    ### Players with a ping higher than the value specified below will be locked out of the game. We recommend to not allow too high pings as this can result in player cheating
+    # KickPlayerWithPing: 300
+
+    ### Monitors booting playfield server processes, kills them if they time out (time in seconds, 0 = disabled)
+    ### Note: This is a conservative default, for faster servers 60 seconds should be ok
+    TimeoutBootingPfServer: 90
+
+GameConfig:
+    GameName: DediGame                       # Determines name of the save game 
+    Mode: Survival                           # Survival or Creative
+    Seed: 0                                  # The seed determines how the world is procedurally generated - the same seed means the same world
+    CustomScenario: Default Akua-Omicron     # Enable custom scenario. Name of custom scenario from folder Content\Scenarios
