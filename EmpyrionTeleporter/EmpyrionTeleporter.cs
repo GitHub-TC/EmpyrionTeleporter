@@ -252,11 +252,13 @@ namespace EmpyrionTeleporter
                 while (TryTimer.ElapsedMilliseconds < (TeleporterDB.Configuration.HoldPlayerOnPositionAfterTeleport * 1000))
                 {
                     Thread.Sleep(2000);
+                    var WaitTime = TeleporterDB.Configuration.HoldPlayerOnPositionAfterTeleport - (int)(TryTimer.ElapsedMilliseconds / 1000);
                     Request_Player_Info(aPlayerId.ToId(), P => {
                         if (Vector3.Distance(GetVector3(P.pos), aTargetPos) > 3) ActionTeleportPlayer();
-                        else                                                     InformPlayer(aPlayerId, $"Target reached please wait for {TeleporterDB.Configuration.HoldPlayerOnPositionAfterTeleport - (int)(TryTimer.ElapsedMilliseconds / 1000)} sec.");
+                        else if(WaitTime > 0)                                    InformPlayer(aPlayerId, $"Target reached please wait for {WaitTime} sec.");
                     }, (E) => InformPlayer(aPlayerId, "Target reached. {E}"));
                 }
+                InformPlayer(aPlayerId, $"Thank you for traveling with the EmpyrionTeleporter :-)");
             })).Start();
         }
 
