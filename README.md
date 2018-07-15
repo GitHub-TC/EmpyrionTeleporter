@@ -25,7 +25,7 @@ Die Kommandos funktionieren NUR im Fraktionschat!
 * /tt delete <Id> => Löscht alle Teleporterouten von und nach <Id>
 * /tt list <Id> => Listet alle Teleporterouten von und nach <Id> auf
 * /tt listall => Listet alle Teleporterouten auf (nur ab Moderator erlaubt)
-* /tt cleanup => Löscht alle Teleporterrouten die zu gelöschten Strukturen führen (only Moderators can use it)
+* /tt cleanup => Löscht alle Teleporterrouten die zu gelöschten Strukturen führen (nur ab Moderator erlaubt)
 * /tt private <SourceId> <TargetId> => Privaten Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für den Spieler nutzbar ist.
 * /tt faction <SourceId> <TargetId> => Fraktions Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für die Fraktion nutzbar ist.
 * /tt <SourceId> <TargetId> => Öffentlichen Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten.

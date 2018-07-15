@@ -266,7 +266,7 @@ namespace EmpyrionTeleporter
                 TryTimer.Start();
                 while (TryTimer.ElapsedMilliseconds < (TeleporterDB.Configuration.HoldPlayerOnPositionAfterTeleport * 1000))
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(2000);
                     var WaitTime = TeleporterDB.Configuration.HoldPlayerOnPositionAfterTeleport - (int)(TryTimer.ElapsedMilliseconds / 1000);
                     Request_Player_Info(aPlayerId.ToId(), P => {
                         if (Vector3.Distance(GetVector3(P.pos), aTargetPos) > 3) ActionTeleportPlayer();
