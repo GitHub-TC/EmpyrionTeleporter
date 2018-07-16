@@ -176,6 +176,13 @@ namespace EmpyrionTeleporter
                     else if (!CheckPermission(SourceStructure, TeleporterDB.Configuration)) AlertPlayer(P.entityId, $"Structure not allowed: {aSourceId} {(EntityType)SourceStructure.Data.type}/{(FactionGroups)SourceStructure.Data.factionGroup}");
                     else if (!CheckPermission(TargetStructure, TeleporterDB.Configuration)) AlertPlayer(P.entityId, $"Structure not allowed: {aTargetId} {(EntityType)TargetStructure.Data.type}/{(FactionGroups)TargetStructure.Data.factionGroup}");
                     else if (P.credits < TeleporterDB.Configuration.CostsPerTeleporterPosition) AlertPlayer(P.entityId, $"You need {TeleporterDB.Configuration.CostsPerTeleporterPosition} credits ;-)");
+                    else if (TeleporterDB.Configuration.ForbiddenPlayfields.Contains(P.playfield)               ||
+                             TeleporterDB.Configuration.ForbiddenPlayfields.Contains(SourceStructure.Playfield) ||
+                             TeleporterDB.Configuration.ForbiddenPlayfields.Contains(TargetStructure.Playfield))
+                    {
+                        InformPlayer(aPlayerId, "No teleporter allowed here ;-)");
+                        log($"EmpyrionTeleporter: Exec: {P.playerName}/{P.entityId}/{P.clientId} -> no teleport allowed for pos={GetVector3(P.pos).String()} on '{P.playfield}'");
+                    }
                     else
                     {
                         TeleporterDB.AddRoute(G, aPermission, aSourceId, aTargetId, P);
@@ -206,9 +213,12 @@ namespace EmpyrionTeleporter
 
         private void ListAllTeleporterRoutes(int aPlayerId)
         {
-            Request_Player_Info(aPlayerId.ToId(), (P) =>
+            Request_GlobalStructure_List(G =>
             {
-                ShowDialog(aPlayerId, P, "Teleporters", TeleporterDB.TeleporterRoutes.OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString() + "\n"));
+                Request_Player_Info(aPlayerId.ToId(), (P) =>
+                {
+                    ShowDialog(aPlayerId, P, "Teleporters", TeleporterDB.TeleporterRoutes.OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString(G) + "\n"));
+                });
             });
         }
 
@@ -225,19 +235,30 @@ namespace EmpyrionTeleporter
 
         private void ListTeleporterRoutes(int aPlayerId, int aStructureId)
         {
-            Request_Player_Info(aPlayerId.ToId(), (P) =>
+            Request_GlobalStructure_List(G =>
             {
-                ShowDialog(aPlayerId, P, "Teleporters", TeleporterDB.List(aStructureId, P).OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString() + "\n"));
+                Request_Player_Info(aPlayerId.ToId(), (P) =>
+                {
+                    ShowDialog(aPlayerId, P, "Teleporters", TeleporterDB.List(aStructureId, P).OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString(G) + "\n"));
+                });
             });
         }
 
-        private bool ExecTeleportPlayer(GlobalStructureList aGlobalStructureList, PlayerInfo aPlayer, int aPlayerId)
+    private bool ExecTeleportPlayer(GlobalStructureList aGlobalStructureList, PlayerInfo aPlayer, int aPlayerId)
         {
             var FoundRoute = TeleporterDB.SearchRoute(aGlobalStructureList, aPlayer);
             if (FoundRoute == null)
             {
-                InformPlayer(aPlayer.entityId, "No teleporter position here :-( wait 2min for structure update and try it again please.");
+                InformPlayer(aPlayerId, "No teleporter position here :-( wait 2min for structure update and try it again please.");
                 log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}/{aPlayer.clientId} -> no route found for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'");
+                return false;
+            }
+
+            if (TeleporterDB.Configuration.ForbiddenPlayfields.Contains(aPlayer   .playfield) ||
+                TeleporterDB.Configuration.ForbiddenPlayfields.Contains(FoundRoute.Playfield))
+            {
+                InformPlayer(aPlayerId, "No teleport allowed here ;-)");
+                log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}/{aPlayer.clientId} -> no teleport allowed for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'");
                 return false;
             }
 
@@ -248,8 +269,8 @@ namespace EmpyrionTeleporter
 
             Action ActionTeleportPlayer = () =>
             {
-                if (FoundRoute.Playfield == aPlayer.playfield) Request_Entity_Teleport(new IdPositionRotation(aPlayer.entityId, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
-                else Request_Player_ChangePlayerfield(new IdPlayfieldPositionRotation(aPlayer.entityId, FoundRoute.Playfield, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
+                if (FoundRoute.Playfield == aPlayer.playfield) Request_Entity_Teleport         (new IdPositionRotation(aPlayer.entityId, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
+                else                                           Request_Player_ChangePlayerfield(new IdPlayfieldPositionRotation(aPlayer.entityId, FoundRoute.Playfield, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
             };
 
             ActionTeleportPlayer();

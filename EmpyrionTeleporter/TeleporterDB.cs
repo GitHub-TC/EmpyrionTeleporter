@@ -25,7 +25,7 @@ namespace EmpyrionTeleporter
             public Vector3 Rotation { get; set; }
             public override string ToString()
             {
-                return $"Id:{Id} relpos={Position.String()}";
+                return $"Id:[c][ffffff]{Id}[-][/c] relpos=[c][ffffff]{Position.String()}[-][/c]";
             }
         }
 
@@ -34,7 +34,7 @@ namespace EmpyrionTeleporter
             public string Playfield { get; set; }
             public override string ToString()
             {
-                return $"Id:{Id}/{Playfield} relpos={Position.String()}";
+                return $"Id:[c][ffffff]{Id}/[c][ffffff]{Playfield}[-][/c] relpos=[c][ffffff]{Position.String()}[-][/c]";
             }
         }
 
@@ -47,7 +47,17 @@ namespace EmpyrionTeleporter
 
             public override string ToString()
             {
-                return $"{Permission}[{PermissionId}]: {A.ToString()} <=> {B.ToString()}";
+                return $"{Permission}{(PermissionId == 0 ? "" : $"[PermissionId]")}: {A.ToString()} <=> {B.ToString()}";
+            }
+
+            public string ToString(GlobalStructureList G)
+            {
+                var Sa = SearchEntity(G, A.Id);
+                var Sb = SearchEntity(G, B.Id);
+
+                return $"[c][ff0000]{Permission}{(PermissionId == 0 ? "" : $"[PermissionId]")}[-][/c]: " +
+                       (Sa == null ? A.ToString() : $"[c][ff00ff]{Sa.Data.name}[-][/c] [[c][ffffff]{Sa.Data.id}[-][/c]/[c][ffffff]{Sa.Playfield}[-][/c]]") + " <=> " +
+                       (Sb == null ? B.ToString() : $"[c][ff00ff]{Sb.Data.name}[-][/c] [[c][ffffff]{Sb.Data.id}[-][/c]/[c][ffffff]{Sb.Playfield}[-][/c]]");
             }
         }
 

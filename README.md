@@ -55,6 +55,8 @@ vornehmen.
 * AllowedStructures: Liste der erlaubten Strukturen für Teleporterpunkte hierbei sind folgende Werte erlaubt
   - EntityType: BA, CV, SV, HV 
   - FactionGroups: Faction, Player, Alien, Admin
+* ForbiddenPlayfields: Liste der Playfield in oder zu denen kein Teleporten oder Erstellen eines Teleporter erlaubt ist
+  - Beispieleintrag: <string>Akua</string>
 
 ### Was kommt noch?
 Zunächst erstmal und damit viel Spaß beim Teleportieren wünscht euch
@@ -123,6 +125,8 @@ You can configure the mod in
 * AllowedStructures: Set the allowed structures player can use the teleporter on/in
   - EntityType: BA, CV, SV, HV 
   - FactionGroups: Faction, Player, Alien, Admin
+* ForbiddenPlayfields: List of playfields in or to which no teleporting or teleporter creation is allowed
+  - Example entry: <string> Akua </ string>
 
 ### Is that it?
 First of all, and so much fun while teleporting wishes you

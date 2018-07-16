@@ -24,5 +24,6 @@ namespace EmpyrionTeleporter
                 new AllowedStructure(){ EntityType = EntityType.CV, FactionGroups = FactionGroups.Player  },
                 new AllowedStructure(){ EntityType = EntityType.CV, FactionGroups = FactionGroups.Faction },
             };
+        public string[] ForbiddenPlayfields { get; set; } = new string[] { "" };
     }
 }
