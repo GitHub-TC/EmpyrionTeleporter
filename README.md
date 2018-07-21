@@ -22,7 +22,7 @@ Die Kommandos funktionieren NUR im Fraktionschat!
 * /tt => Teleport von dieser (vorher eingerichteten) Position zum Ziel durchführen
 * /tt help => Liste der Kommandos
 * /tt back => Falls ein Teleport schiefgegenen sein sollte kann sich der Spieler hiermit zu der Position VOR dem Teleport zurück teleportieren lassen
-* /tt delete <Id> => Löscht alle Teleporterouten von und nach <Id>
+* /tt delete <SourceId> <TargetId> => Löscht alle Teleporterouten von <SourceId> und nach <TargetId> - wenn <TargetId> = 0 ist werden ALLE Routen von <SourceId> gelöscht
 * /tt list <Id> => Listet alle Teleporterouten von und nach <Id> auf
 * /tt listall => Listet alle Teleporterouten auf (nur ab Moderator erlaubt)
 * /tt cleanup => Löscht alle Teleporterrouten die zu gelöschten Strukturen führen (nur ab Moderator erlaubt)
@@ -92,7 +92,7 @@ All commands only work in faction chat!
 * /tt : teleport the player from previously configured position to the destination
 * /tt help : show all commands
 * /tt back : if a teleport failed, the player can get back to the position he came from
-* /tt delete <Id> : removes the teleport connection regarding this ID
+* /tt delete <SourceId> <TargetId> => Deletes all teleport routes from <SourceId> and after <TargetId> - when <TargetId> = 0 ALL routes from <SourceId> will be deleted
 * /tt list <Id> : show all teleport connections from and to this ID
 * /tt listall : show all teleport connections (only Moderators can use it)
 * /tt cleanup : remove all teleport connections to deleted structures (only Moderators can use it)

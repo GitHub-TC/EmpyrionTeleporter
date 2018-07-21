@@ -77,7 +77,7 @@ namespace EmpyrionTeleporter
             ChatCommands.Add(new ChatCommand(@"/tt",                                            (I, A) => ExecAlignCommand(SubCommand.Teleport, TeleporterPermission.PublicAccess,  I, A), "Execute teleport"));
             ChatCommands.Add(new ChatCommand(@"/tt help",                                       (I, A) => ExecAlignCommand(SubCommand.Help,     TeleporterPermission.PublicAccess,  I, A), "Display help"));
             ChatCommands.Add(new ChatCommand(@"/tt back",                                       (I, A) => ExecAlignCommand(SubCommand.Back,     TeleporterPermission.PublicAccess,  I, A), "Teleports the player back to the last (good) position"));
-            ChatCommands.Add(new ChatCommand(@"/tt delete (?<Id>\d+)",                          (I, A) => ExecAlignCommand(SubCommand.Delete,   TeleporterPermission.PublicAccess,  I, A), "Delete all teleportdata from {Id}"));
+            ChatCommands.Add(new ChatCommand(@"/tt delete (?<SourceId>\d+) (?<TargetId>\d+)",   (I, A) => ExecAlignCommand(SubCommand.Delete,   TeleporterPermission.PublicAccess,  I, A), "Delete all teleportdata from {SourceId} {TargetId}"));
             ChatCommands.Add(new ChatCommand(@"/tt list (?<Id>\d+)",                            (I, A) => ExecAlignCommand(SubCommand.List,     TeleporterPermission.PublicAccess,  I, A), "List all teleportdata from {Id}"));
             ChatCommands.Add(new ChatCommand(@"/tt listall",                                    (I, A) => ExecAlignCommand(SubCommand.ListAll,  TeleporterPermission.PublicAccess,  I, A), "List all teleportdata", PermissionType.Moderator));
             ChatCommands.Add(new ChatCommand(@"/tt cleanup",                                    (I, A) => ExecAlignCommand(SubCommand.CleanUp,  TeleporterPermission.PublicAccess,  I, A), "Removes all teleportdata to deleted structures", PermissionType.Moderator));
@@ -129,7 +129,7 @@ namespace EmpyrionTeleporter
             {
                 case SubCommand.Help    : DisplayHelp(info.playerId); break;
                 case SubCommand.Back    : ExecTeleportPlayerBack(info.playerId); break;
-                case SubCommand.Delete  : DeleteTeleporterRoutes(info.playerId, getIntParam(args, "Id")); break;
+                case SubCommand.Delete  : DeleteTeleporterRoutes(info.playerId, getIntParam(args, "SourceId"), getIntParam(args, "TargetId")); break;
                 case SubCommand.List    : ListTeleporterRoutes(info.playerId, getIntParam(args, "Id")); break;
                 case SubCommand.ListAll : ListAllTeleporterRoutes(info.playerId); break;
                 case SubCommand.CleanUp : CleanUpTeleporterRoutes(info.playerId); break;
@@ -145,7 +145,7 @@ namespace EmpyrionTeleporter
                 var TeleporterFlatIdList = TeleporterDB.TeleporterRoutes.Aggregate(new List<int>(), (L, P) => { L.Add(P.A.Id); L.Add(P.B.Id); return L; });
 
                 var DeleteList = TeleporterFlatIdList.Where(I => !GlobalFlatIdList.Contains(I)).Distinct();
-                var DelCount = DeleteList.Aggregate(0, (C, I) => C + TeleporterDB.Delete(I));
+                var DelCount = DeleteList.Aggregate(0, (C, I) => C + TeleporterDB.Delete(I, 0));
                 log($"CleanUpTeleporterRoutes: {DelCount} Structures: {DeleteList.Aggregate("", (S, I) => S + "," + I)}");
                 InformPlayer(aPlayerId, $"CleanUp: {DelCount} TeleporterRoutes");
 
@@ -213,23 +213,27 @@ namespace EmpyrionTeleporter
 
         private void ListAllTeleporterRoutes(int aPlayerId)
         {
+            var Timer = new Stopwatch();
+            Timer.Start();
+
             Request_GlobalStructure_List(G =>
             {
+                Timer.Stop();
                 Request_Player_Info(aPlayerId.ToId(), (P) =>
                 {
-                    ShowDialog(aPlayerId, P, "Teleporters", TeleporterDB.TeleporterRoutes.OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString(G) + "\n"));
+                    ShowDialog(aPlayerId, P, $"Teleporters (Playfields #{G.globalStructures.Count} Structures #{G.globalStructures.Aggregate(0, (c, p) => c + p.Value.Aggregate(0, (cc, s) => cc + 1))} load {Timer.Elapsed.TotalSeconds}s)", TeleporterDB.TeleporterRoutes.OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString(G) + "\n"));
                 });
             });
         }
 
-        private void DeleteTeleporterRoutes(int aPlayerId, int aStructureId)
+        private void DeleteTeleporterRoutes(int aPlayerId, int aSourceId, int aTargetId)
         {
             Request_Player_Info(aPlayerId.ToId(), (P) =>
             {
-                var deletedCount = TeleporterDB.Delete(aStructureId);
+                var deletedCount = TeleporterDB.Delete(aSourceId, aTargetId);
                 SaveTeleporterDB();
 
-                AlertPlayer(P.entityId, $"Delete {deletedCount} teleporter from {aStructureId}");
+                AlertPlayer(P.entityId, $"Delete {deletedCount} teleporter from {aSourceId}");
             });
         }
 
