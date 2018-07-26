@@ -6,6 +6,7 @@ using System.Xml.Serialization;
 using System.Xml;
 using System.Linq;
 using System.Numerics;
+using EmpyrionAPIDefinitions;
 
 namespace EmpyrionTeleporter
 {
@@ -63,11 +64,11 @@ namespace EmpyrionTeleporter
 
         public Configuration Configuration { get; set; } = new Configuration();
         public List<TeleporterRoute> TeleporterRoutes { get; set; } = new List<TeleporterRoute>();
-        public static Action<string> LogDB { get; set; }
+        public static Action<string, LogLevel> LogDB { get; set; }
 
-        private static void log(string aText)
+        private static void log(string aText, LogLevel aLevel)
         {
-            LogDB?.Invoke(aText);
+            LogDB?.Invoke(aText, aLevel);
         }
 
         bool IsPermissionGranted(TeleporterRoute aRoute, PlayerInfo aPlayer)
@@ -153,7 +154,7 @@ namespace EmpyrionTeleporter
             var StructureInfo = SearchEntity(aGlobalStructureList, aTarget.Id);
             if (StructureInfo == null)
             {
-                log($"TargetStructure missing:{aTarget.Id} pos={aTarget.Position.String()}");
+                log($"TargetStructure missing:{aTarget.Id} pos={aTarget.Position.String()}", LogLevel.Error);
                 return false;
             }
 
@@ -163,7 +164,7 @@ namespace EmpyrionTeleporter
 
             var Distance = Math.Abs(Vector3.Distance(TeleporterPos, GetVector3(aTestPos)));
 
-            log($"FoundTarget:{StructureInfo.Data.id}/{StructureInfo.Data.type} pos={StructureInfo.Data.pos.String()} TeleportPos={TeleporterPos.String()} TEST {aTestPos.String()} => {Distance}");
+            log($"FoundTarget:{StructureInfo.Data.id}/{StructureInfo.Data.type} pos={StructureInfo.Data.pos.String()} TeleportPos={TeleporterPos.String()} TEST {aTestPos.String()} => {Distance}", LogLevel.Message);
 
             return Distance < 4;
         }
@@ -178,7 +179,7 @@ namespace EmpyrionTeleporter
             var StructureInfo = SearchEntity(aGlobalStructureList, aTarget.Id);
             if (StructureInfo == null)
             {
-                log($"TargetStructure missing:{aTarget.Id} pos={aTarget.Position.String()}");
+                log($"TargetStructure missing:{aTarget.Id} pos={aTarget.Position.String()}", LogLevel.Error);
                 return null;
             }
 
@@ -186,7 +187,7 @@ namespace EmpyrionTeleporter
             var StructureRotation = GetMatrix4x4(StructureInfoRot);
             var TeleportTargetPos = Vector3.Transform(aTarget.Position, StructureRotation) + GetVector3(StructureInfo.Data.pos);
 
-            log($"CurrentTeleportTargetPosition:{StructureInfo.Data.id}/{StructureInfo.Data.type} pos={StructureInfo.Data.pos.String()} TeleportPos={TeleportTargetPos.String()}");
+            log($"CurrentTeleportTargetPosition:{StructureInfo.Data.id}/{StructureInfo.Data.type} pos={StructureInfo.Data.pos.String()} TeleportPos={TeleportTargetPos.String()}", LogLevel.Message);
 
             return new TeleporterTargetData() { Id = aTarget.Id, Playfield = StructureInfo.Playfield, Position = TeleportTargetPos, Rotation = aTarget.Rotation + StructureInfoRot};
         }
@@ -222,13 +223,13 @@ namespace EmpyrionTeleporter
         {
             if (!File.Exists(DBFileName))
             {
-                log($"TeleporterDB ReadDB not found '{DBFileName}'");
+                log($"TeleporterDB ReadDB not found '{DBFileName}'", LogLevel.Error);
                 return new TeleporterDB();
             }
 
             try
             {
-                log($"TeleporterDB ReadDB load '{DBFileName}'");
+                log($"TeleporterDB ReadDB load '{DBFileName}'", LogLevel.Message);
                 var serializer = new XmlSerializer(typeof(TeleporterDB));
                 using (var reader = XmlReader.Create(DBFileName))
                 {
@@ -237,7 +238,7 @@ namespace EmpyrionTeleporter
             }
             catch(Exception Error)
             {
-                log("TeleporterDB ReadDB" + Error.ToString());
+                log("TeleporterDB ReadDB" + Error.ToString(), LogLevel.Error);
                 return new TeleporterDB();
             }
         }

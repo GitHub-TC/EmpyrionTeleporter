@@ -68,8 +68,9 @@ namespace EmpyrionTeleporter
         {
             GameAPI = aGameAPI;
             verbose = true;
+            this.LogLevel = LogLevel.Message;
 
-            log($"**HandleEmpyrionTeleporter loaded: {string.Join(" ", Environment.GetCommandLineArgs())}");
+            log($"**HandleEmpyrionTeleporter loaded: {string.Join(" ", Environment.GetCommandLineArgs())}", LogLevel.Message);
 
             InitializeTeleporterDB();
             InitializeTeleporterDBFileWatcher();
@@ -121,7 +122,7 @@ namespace EmpyrionTeleporter
 
         private void ExecAlignCommand(SubCommand aCommand, TeleporterPermission aPermission, ChatInfo info, Dictionary<string, string> args)
         {
-            log($"**HandleEmpyrionTeleporter {info.type}:{info.msg} {args.Aggregate("", (s, i) => s + i.Key + "/" + i.Value + " ")}");
+            log($"**HandleEmpyrionTeleporter {info.type}:{info.msg} {args.Aggregate("", (s, i) => s + i.Key + "/" + i.Value + " ")}", LogLevel.Message);
 
             if (info.type != (byte)ChatType.Faction) return;
 
@@ -146,7 +147,7 @@ namespace EmpyrionTeleporter
 
                 var DeleteList = TeleporterFlatIdList.Where(I => !GlobalFlatIdList.Contains(I)).Distinct();
                 var DelCount = DeleteList.Aggregate(0, (C, I) => C + TeleporterDB.Delete(I, 0));
-                log($"CleanUpTeleporterRoutes: {DelCount} Structures: {DeleteList.Aggregate("", (S, I) => S + "," + I)}");
+                log($"CleanUpTeleporterRoutes: {DelCount} Structures: {DeleteList.Aggregate("", (S, I) => S + "," + I)}", LogLevel.Message);
                 InformPlayer(aPlayerId, $"CleanUp: {DelCount} TeleporterRoutes");
 
                 if (DelCount > 0) SaveTeleporterDB();
@@ -181,7 +182,7 @@ namespace EmpyrionTeleporter
                              TeleporterDB.Configuration.ForbiddenPlayfields.Contains(TargetStructure.Playfield))
                     {
                         InformPlayer(aPlayerId, "No teleporter allowed here ;-)");
-                        log($"EmpyrionTeleporter: Exec: {P.playerName}/{P.entityId}/{P.clientId} -> no teleport allowed for pos={GetVector3(P.pos).String()} on '{P.playfield}'");
+                        log($"EmpyrionTeleporter: Exec: {P.playerName}/{P.entityId}/{P.clientId} -> no teleport allowed for pos={GetVector3(P.pos).String()} on '{P.playfield}'", LogLevel.Error);
                     }
                     else
                     {
@@ -221,7 +222,7 @@ namespace EmpyrionTeleporter
                 Timer.Stop();
                 Request_Player_Info(aPlayerId.ToId(), (P) =>
                 {
-                    ShowDialog(aPlayerId, P, $"Teleporters (Playfields #{G.globalStructures.Count} Structures #{G.globalStructures.Aggregate(0, (c, p) => c + p.Value.Aggregate(0, (cc, s) => cc + 1))} load {Timer.Elapsed.TotalSeconds}s)", TeleporterDB.TeleporterRoutes.OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString(G) + "\n"));
+                    ShowDialog(aPlayerId, P, $"Teleporters (Playfields #{G.globalStructures.Count} Structures #{G.globalStructures.Aggregate(0, (c, p) => c + p.Value.Count)} load {Timer.Elapsed.TotalMilliseconds:N2}s)", TeleporterDB.TeleporterRoutes.OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString(G) + "\n"));
                 });
             });
         }
@@ -254,7 +255,7 @@ namespace EmpyrionTeleporter
             if (FoundRoute == null)
             {
                 InformPlayer(aPlayerId, "No teleporter position here :-( wait 2min for structure update and try it again please.");
-                log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}/{aPlayer.clientId} -> no route found for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'");
+                log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}/{aPlayer.clientId} -> no route found for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'", LogLevel.Error);
                 return false;
             }
 
@@ -262,31 +263,32 @@ namespace EmpyrionTeleporter
                 TeleporterDB.Configuration.ForbiddenPlayfields.Contains(FoundRoute.Playfield))
             {
                 InformPlayer(aPlayerId, "No teleport allowed here ;-)");
-                log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}/{aPlayer.clientId} -> no teleport allowed for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'");
+                log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}/{aPlayer.clientId} -> no teleport allowed for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'", LogLevel.Error);
                 return false;
             }
 
-            log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}-> {FoundRoute.Id} on '{FoundRoute.Playfield}' pos={FoundRoute.Position.String()} rot={FoundRoute.Rotation.String()}");
+            log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}-> {FoundRoute.Id} on '{FoundRoute.Playfield}' pos={FoundRoute.Position.String()} rot={FoundRoute.Rotation.String()}", LogLevel.Message);
 
             if (!PlayerLastGoodPosition.ContainsKey(aPlayer.entityId)) PlayerLastGoodPosition.Add(aPlayer.entityId, null);
             PlayerLastGoodPosition[aPlayer.entityId] = new IdPlayfieldPositionRotation(aPlayer.entityId, aPlayer.playfield, aPlayer.pos, aPlayer.rot);
 
-            Action ActionTeleportPlayer = () =>
+            Action<PlayerInfo> ActionTeleportPlayer = (P) =>
             {
-                if (FoundRoute.Playfield == aPlayer.playfield) Request_Entity_Teleport         (new IdPositionRotation(aPlayer.entityId, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
-                else                                           Request_Player_ChangePlayerfield(new IdPlayfieldPositionRotation(aPlayer.entityId, FoundRoute.Playfield, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
+                if (FoundRoute.Playfield == P.playfield) Request_Entity_Teleport         (new IdPositionRotation(aPlayer.entityId, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)),                               null, (E) => InformPlayer(aPlayerId, "Entity_Teleport: {E}"));
+                else                                     Request_Player_ChangePlayerfield(new IdPlayfieldPositionRotation(aPlayer.entityId, FoundRoute.Playfield, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)),null, (E) => InformPlayer(aPlayerId, "Player_ChangePlayerfield: {E}"));
             };
 
-            ActionTeleportPlayer();
-            CheckPlayerStableTargetPos(aPlayerId, ActionTeleportPlayer, FoundRoute.Position);
+            ActionTeleportPlayer(aPlayer);
+            CheckPlayerStableTargetPos(aPlayerId, aPlayer, ActionTeleportPlayer, FoundRoute.Position);
 
             return true;
         }
 
-        private void CheckPlayerStableTargetPos(int aPlayerId, Action ActionTeleportPlayer, Vector3 aTargetPos)
+        private void CheckPlayerStableTargetPos(int aPlayerId, PlayerInfo aCurrentPlayerInfo, Action<PlayerInfo> ActionTeleportPlayer, Vector3 aTargetPos)
         {
             new Thread(new ThreadStart(() =>
             {
+                PlayerInfo LastPlayerInfo = aCurrentPlayerInfo;
                 var TryTimer = new Stopwatch();
                 TryTimer.Start();
                 while (TryTimer.ElapsedMilliseconds < (TeleporterDB.Configuration.HoldPlayerOnPositionAfterTeleport * 1000))
@@ -294,10 +296,11 @@ namespace EmpyrionTeleporter
                     Thread.Sleep(2000);
                     var WaitTime = TeleporterDB.Configuration.HoldPlayerOnPositionAfterTeleport - (int)(TryTimer.ElapsedMilliseconds / 1000);
                     Request_Player_Info(aPlayerId.ToId(), P => {
-                        if (Vector3.Distance(GetVector3(P.pos), aTargetPos) > 3) ActionTeleportPlayer();
-                        else if (WaitTime > 0) InformPlayer(aPlayerId, $"Target reached please wait for {WaitTime} sec.");
+                        LastPlayerInfo = P;
+                        if(WaitTime > 0) InformPlayer(aPlayerId, $"Target reached please wait for {WaitTime} sec.");
                     }, (E) => InformPlayer(aPlayerId, "Target reached. {E}"));
                 }
+                if (Vector3.Distance(GetVector3(LastPlayerInfo.pos), aTargetPos) > 3) ActionTeleportPlayer(LastPlayerInfo);
                 InformPlayer(aPlayerId, $"Thank you for traveling with the EmpyrionTeleporter :-)");
             })).Start();
         }
@@ -332,7 +335,7 @@ namespace EmpyrionTeleporter
 
         private void LogError(string aPrefix, ErrorInfo aError)
         {
-            log($"{aPrefix} Error: {aError.errorType} {aError.ToString()}");
+            log($"{aPrefix} Error: {aError.errorType} {aError.ToString()}", LogLevel.Error);
         }
 
         private int getIntParam(Dictionary<string, string> aArgs, string aParameterName)
