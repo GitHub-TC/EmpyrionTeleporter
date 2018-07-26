@@ -278,8 +278,21 @@ namespace EmpyrionTeleporter
                 else                                     Request_Player_ChangePlayerfield(new IdPlayfieldPositionRotation(aPlayer.entityId, FoundRoute.Playfield, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)),null, (E) => InformPlayer(aPlayerId, "Player_ChangePlayerfield: {E}"));
             };
 
-            ActionTeleportPlayer(aPlayer);
-            CheckPlayerStableTargetPos(aPlayerId, aPlayer, ActionTeleportPlayer, FoundRoute.Position);
+            new Thread(new ThreadStart(() =>
+            {
+                var TryTimer = new Stopwatch();
+                TryTimer.Start();
+                while (TryTimer.ElapsedMilliseconds < (TeleporterDB.Configuration.PreparePlayerForTeleport * 1000))
+                {
+                    Thread.Sleep(2000);
+                    var WaitTime = TeleporterDB.Configuration.PreparePlayerForTeleport - (int)(TryTimer.ElapsedMilliseconds / 1000);
+                    InformPlayer(aPlayerId, $"Prepare for teleport in {WaitTime} sec.");
+                }
+
+                ActionTeleportPlayer(aPlayer);
+                CheckPlayerStableTargetPos(aPlayerId, aPlayer, ActionTeleportPlayer, FoundRoute.Position);
+
+            })).Start();
 
             return true;
         }

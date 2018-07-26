@@ -50,6 +50,7 @@ Eine Konfiguration kann man in der Datei (wird beim ersten Start automatisch ers
 vornehmen.
 
 * HoldPlayerOnPositionAfterTeleport: Zeit in Sekunden die ein Spieler nach dem Teleport auf Position gehalten wird bis die Strukturen (hoffentlich) nachgeladen sind
+* PreparePlayerForTeleport: Zeit in Sekunden die der Spieler sich auf den Teleport vorbereiten kann (Chat schließen, Finger auf die Jetpacktaste und die Leertaste legen... ;-) )
 * CostsPerTeleporterPosition: Creditkosten für das Setzen eines Teleporterpunktes
 * CostsPerTeleport: Creditkosten für das Benutzen eines Teleporterpunktes
 * AllowedStructures: Liste der erlaubten Strukturen für Teleporterpunkte hierbei sind folgende Werte erlaubt
@@ -120,6 +121,7 @@ You can configure the mod in
 (will be created with the first start automatically).
 
 * HoldPlayerOnPositionAfterTeleport: Time in seconds where the player will be hold to the teleport position until the structure is loaded (to prevent gravity fall down for example)
+* PreparePlayerForTeleport: Time in seconds the player can prepare for the teleport (close the chat, put his finger on the Jetpack key and the space bar ... ;-))
 * CostsPerTeleporterPosition: Set credit cost for creating a teleport connection point
 * CostsPerTeleport: Set credit cost for using the teleporter
 * AllowedStructures: Set the allowed structures player can use the teleporter on/in

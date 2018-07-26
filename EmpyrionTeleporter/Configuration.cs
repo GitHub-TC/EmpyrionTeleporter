@@ -14,6 +14,7 @@ namespace EmpyrionTeleporter
 
     public class Configuration
     {
+        public int PreparePlayerForTeleport { get; set; } = 10;
         public int HoldPlayerOnPositionAfterTeleport { get; set; } = 20;
         public int CostsPerTeleporterPosition { get; set; }
         public int CostsPerTeleport { get; set; }
