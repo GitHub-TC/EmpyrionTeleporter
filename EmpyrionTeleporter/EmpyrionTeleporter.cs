@@ -278,6 +278,8 @@ namespace EmpyrionTeleporter
                 else                                     Request_Player_ChangePlayerfield(new IdPlayfieldPositionRotation(aPlayer.entityId, FoundRoute.Playfield, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)),null, (E) => InformPlayer(aPlayerId, "Player_ChangePlayerfield: {E}"));
             };
 
+            Request_Player_SetPlayerInfo(new PlayerInfoSet() { entityId = aPlayer.entityId, health = (int)aPlayer.healthMax });
+
             new Thread(new ThreadStart(() =>
             {
                 var TryTimer = new Stopwatch();
@@ -314,6 +316,7 @@ namespace EmpyrionTeleporter
                     }, (E) => InformPlayer(aPlayerId, "Target reached. {E}"));
                 }
                 if (Vector3.Distance(GetVector3(LastPlayerInfo.pos), aTargetPos) > 3) ActionTeleportPlayer(LastPlayerInfo);
+                Request_Player_SetPlayerInfo(new PlayerInfoSet() { entityId = aCurrentPlayerInfo.entityId, health = (int)aCurrentPlayerInfo.healthMax });
                 InformPlayer(aPlayerId, $"Thank you for traveling with the EmpyrionTeleporter :-)");
             })).Start();
         }
