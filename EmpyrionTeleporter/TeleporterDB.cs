@@ -141,10 +141,12 @@ namespace EmpyrionTeleporter
         public int Delete(int aSourceId, int aTargetId)
         {
             var OldCount = TeleporterRoutes.Count();
-            TeleporterRoutes = TeleporterRoutes
-                .Where(T =>                    T.A.Id != aSourceId && T.B.Id != aSourceId)
-                .Where(T => aTargetId == 0 || (T.A.Id != aTargetId && T.B.Id != aTargetId))
-                .ToList();
+            TeleporterRoutes = aTargetId == 0
+                ? TeleporterRoutes.Where(T => T.A.Id != aSourceId && T.B.Id != aSourceId)
+                                  .ToList()
+                : TeleporterRoutes.Where(T => !((T.A.Id == aSourceId && T.B.Id == aTargetId) ||
+                                                (T.A.Id == aTargetId && T.B.Id == aSourceId)))
+                                  .ToList();
 
             return OldCount - TeleporterRoutes.Count();
         }

@@ -9,12 +9,21 @@ Oder hier:  https://empyriononline.com/threads/mod-empyrionteleporter.39200/
 
 Ein Teleport zwischen zwei vorher eingerichteten Positionen. Dabei muss der Spieler zuvor an BEIDEN Orten gewesen sein und dort die Teleporterposition relativ zu einer Struktur festgelegt haben.
 
-#### Wie steuert man den MOD?
+#### Anleitung zum Einrichten eines virtuellen Teleporters:
+Befehle über die Fraktionstextleiste eingeben (Fraktionschat: entspricht der ; Semikolon oder Kommataste)
+* Als erstes stelle dich an die Stelle von wo du den ersten Teleporterpunkt setzen möchtest... z.B. in deiner Base. Wie man diesen Platz einrichtet ist völlig egal. Am besten ein LED Pad mit Aufschrift teleport nach xy.... und ihn vielleicht farblich markieren damit man ihn wiederfindet.
+Dann gibst du folgenden Befehl ein: /tt 1234567 7654321 und Entertaste wobei die erste Zahl der ID deiner Basis entspricht und nach einer Leertaste die ID deines Zieles entspricht. Dies kann ein Raumschiff oder eine weitere Basis sein.
+So der erste Telepunkt ist nun gesetzt.
+* Nun begebe dich zu deinem Zielort. Stelle dort auch ein Display auf und beschrifte es dem entsprechen z.B. Teleport zur Basis…. und auch hier solltest du ihn vielleicht farblich markieren damit man ihn wiederfindet.
+Dann gib folgenden Befehl ein: /tt 7654321 1234567
+Also die ID Nummern in genau umgekehrter Reihenfolge
 
-Die Kommandos funktionieren NUR im Fraktionschat!
+Und schon ist der Teleporter fertig eingerichtet und du kannst ihn mit /tt benutzen.<br/>
+Viel Spaß beim Teleportieren....
 
 #### Hilfe
 
+Die Kommandos funktionieren NUR im Fraktionschat!
 * /tt help : Zeigt die Kommandos der Mod an
 
 #### Teleport
@@ -80,12 +89,21 @@ Or here: https://empyriononline.com/threads/mod-empyrionteleporter.39200/
 
 A MOD which can be used to teleport players to previously configured positions. It's required that the player must visited the places before and the teleport positions got binded to the structure.
 
-#### What are all the commands?
+#### How to set up a virtual teleporter:
+Enter commands via the fraction text bar (faction chat: corresponds to the semicolon or comma key)
+* First, take a look at where you want to put the first teleporter point ... e.g. in your base. How to set up this place does not matter. Best an LED pad with inscription teleport to xy .... and maybe mark him in color so that you can find him again.
+Then enter the following command: / tt 1234567 7654321 and enter key where the first number corresponds to the ID of your base and after a space bar corresponds to the ID of your target. This can be a spaceship or another base.
+So the first telepoint is now set.
+* Now go to your destination. Place a display there as well and label it according to e.g. Teleport to the base .... And here you should also mark it in color so that you will find it again.
+Then enter the following command: / tt 7654321 1234567
+So the ID numbers in exactly the reverse order
 
-All commands only work in faction chat!
+And the teleporter is already set up and you can use it with / tt.<br/>
+Have fun teleporting ....
 
 #### Help
 
+All commands only work in faction chat!
 * /tt help : show useful information and commands about the MOD
 
 #### Teleport
