@@ -7,6 +7,7 @@ using System.Xml;
 using System.Linq;
 using System.Numerics;
 using EmpyrionAPIDefinitions;
+using System.Globalization;
 
 namespace EmpyrionTeleporter
 {
@@ -48,7 +49,7 @@ namespace EmpyrionTeleporter
 
             public override string ToString()
             {
-                return $"{Permission}{(PermissionId == 0 ? "" : $"[PermissionId]")}: {A.ToString()} <=> {B.ToString()}";
+                return $"{Permission}{(PermissionId == 0 ? "" : $"{PermissionId}")}: {A.ToString()} <=> {B.ToString()}";
             }
 
             public string ToString(GlobalStructureList G)
@@ -56,9 +57,9 @@ namespace EmpyrionTeleporter
                 var Sa = SearchEntity(G, A.Id);
                 var Sb = SearchEntity(G, B.Id);
 
-                return $"[c][ff0000]{Permission}{(PermissionId == 0 ? "" : $"[PermissionId]")}[-][/c]: " +
-                       (Sa == null ? A.ToString() : $"[c][ff00ff]{Sa.Data.name}[-][/c] [[c][ffffff]{Sa.Data.id}[-][/c]/[c][ffffff]{Sa.Playfield}[-][/c]]") + " <=> " +
-                       (Sb == null ? B.ToString() : $"[c][ff00ff]{Sb.Data.name}[-][/c] [[c][ffffff]{Sb.Data.id}[-][/c]/[c][ffffff]{Sb.Playfield}[-][/c]]");
+                return $"[c][ff0000]{Permission}{(PermissionId == 0 ? "" : $" [{PermissionId}]")}[-][/c]: " +
+                       (Sa == null ? A.ToString() : $"[c][ff00ff]{Sa.Data.name}[-][/c] [[c][ffffff]{Sa.Data.id}[-][/c]/[c][ffffff]{Sa.Playfield}[-][/c]/{GetCurrentTeleportTargetPosition(G, A).Position.ToString("0.00", CultureInfo.InvariantCulture)}]") + " <=> " +
+                       (Sb == null ? B.ToString() : $"[c][ff00ff]{Sb.Data.name}[-][/c] [[c][ffffff]{Sb.Data.id}[-][/c]/[c][ffffff]{Sb.Playfield}[-][/c]/{GetCurrentTeleportTargetPosition(G, B).Position.ToString("0.00", CultureInfo.InvariantCulture)}]");
             }
         }
 
@@ -176,7 +177,7 @@ namespace EmpyrionTeleporter
             return TeleporterRoutes.Where(T => (T.A.Id == aStructureId || T.B.Id == aStructureId) && IsPermissionGranted(T, aPlayer));
         }
 
-        TeleporterTargetData GetCurrentTeleportTargetPosition(GlobalStructureList aGlobalStructureList, TeleporterData aTarget)
+        public static TeleporterTargetData GetCurrentTeleportTargetPosition(GlobalStructureList aGlobalStructureList, TeleporterData aTarget)
         {
             var StructureInfo = SearchEntity(aGlobalStructureList, aTarget.Id);
             if (StructureInfo == null)

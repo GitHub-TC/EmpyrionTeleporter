@@ -222,7 +222,7 @@ namespace EmpyrionTeleporter
                 Timer.Stop();
                 Request_Player_Info(aPlayerId.ToId(), (P) =>
                 {
-                    ShowDialog(aPlayerId, P, $"Teleporters (Playfields #{G.globalStructures.Count} Structures #{G.globalStructures.Aggregate(0, (c, p) => c + p.Value.Count)} load {Timer.Elapsed.TotalMilliseconds:N2}s)", TeleporterDB.TeleporterRoutes.OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString(G) + "\n"));
+                    ShowDialog(aPlayerId, P, $"Teleporters (Playfields #{G.globalStructures.Count} Structures #{G.globalStructures.Aggregate(0, (c, p) => c + p.Value.Count)} load {Timer.Elapsed.TotalMilliseconds:N2}ms)", TeleporterDB.TeleporterRoutes.OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString(G) + "\n"));
                 });
             });
         }

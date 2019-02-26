@@ -12,13 +12,21 @@ namespace EmpyrionTeleporter
     public class EmpyrionConfiguration
     {
         public static string[] MyProperty { get; set; } = Environment.GetCommandLineArgs();
-        public static string ProgramPath { get; private set; } = Directory.GetCurrentDirectory();
+        public static string ProgramPath { get; private set; } = GetDirWith(Directory.GetCurrentDirectory(), "BuildNumber.txt");
+
         public static string ModPath { get; private set; } = Path.Combine(ProgramPath, @"Content\Mods");
         public static string DedicatedFilename { get; private set; } = Environment.GetCommandLineArgs().Contains("-dedicated") 
                                                                             ? Environment.GetCommandLineArgs().SkipWhile(A => string.Compare(A, "-dedicated", StringComparison.InvariantCultureIgnoreCase) != 0).Skip(1).FirstOrDefault() 
                                                                             : "dedicated.yaml";
 
         public static DedicatedYamlStruct DedicatedYaml { get; set; } = new DedicatedYamlStruct(Path.Combine(ProgramPath, DedicatedFilename));
+
+        public static string GetDirWith(string aTestDir, string aTestFile)
+        {
+            return File.Exists(Path.Combine(aTestDir, aTestFile))
+                ? aTestDir
+                : GetDirWith(Path.GetDirectoryName(aTestDir), aTestFile);
+        }
 
         public class DedicatedYamlStruct
         {

@@ -118,15 +118,12 @@ namespace EmpyrionTeleporter
         public string ToString(string format, IFormatProvider formatProvider)
         {
             StringBuilder sb = new StringBuilder();
-            string separator = NumberFormatInfo.GetInstance(formatProvider).NumberGroupSeparator;
             sb.Append('<');
-            sb.Append(((IFormattable)this.X).ToString(format, formatProvider));
-            sb.Append(separator);
-            sb.Append(' ');
-            sb.Append(((IFormattable)this.Y).ToString(format, formatProvider));
-            sb.Append(separator);
-            sb.Append(' ');
-            sb.Append(((IFormattable)this.Z).ToString(format, formatProvider));
+            sb.Append(X.ToString(format, formatProvider));
+            sb.Append('/');
+            sb.Append(Y.ToString(format, formatProvider));
+            sb.Append('/');
+            sb.Append(Z.ToString(format, formatProvider));
             sb.Append('>');
             return sb.ToString();
         }
