@@ -1,13 +1,15 @@
 ﻿using System;
 using Eleon.Modding;
 using System.Collections.Generic;
-using System.IO;
-using System.Xml.Serialization;
-using System.Xml;
 using System.Linq;
 using System.Numerics;
-using EmpyrionAPIDefinitions;
 using System.Globalization;
+using EmpyrionNetAPIDefinitions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using EmpyrionNetAPITools;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace EmpyrionTeleporter
 {
@@ -15,7 +17,8 @@ namespace EmpyrionTeleporter
     {
         PrivateAccess,
         FactionAccess,
-        PublicAccess
+        PublicAccess,
+        AlliesAccess
     }
 
     public class TeleporterDB
@@ -42,6 +45,7 @@ namespace EmpyrionTeleporter
 
         public class TeleporterRoute
         {
+            [JsonConverter(typeof(StringEnumConverter))]
             public TeleporterPermission Permission { get; set; }
             public int PermissionId { get; set; }
             public TeleporterData A { get; set; }
@@ -63,19 +67,84 @@ namespace EmpyrionTeleporter
             }
         }
 
-        public Configuration Configuration { get; set; } = new Configuration();
+        public class AllowedStructure
+        {
+            [JsonConverter(typeof(StringEnumConverter))]
+            public EntityType EntityType { get; set; }
+            [JsonConverter(typeof(StringEnumConverter))]
+            public FactionGroups FactionGroups { get; set; }
+        }
+
+        public class ConfigurationAndDB
+        {
+            public int PreparePlayerForTeleport { get; set; } = 10;
+            public int HoldPlayerOnPositionAfterTeleport { get; set; } = 20;
+            public int CostsPerTeleporterPosition { get; set; }
+            public int CostsPerTeleport { get; set; }
+            public AllowedStructure[] AllowedStructures { get; set; } = new AllowedStructure[]
+                {
+                new AllowedStructure(){ EntityType = EntityType.BA, FactionGroups = FactionGroups.Player  },
+                new AllowedStructure(){ EntityType = EntityType.BA, FactionGroups = FactionGroups.Faction },
+                new AllowedStructure(){ EntityType = EntityType.CV, FactionGroups = FactionGroups.Player  },
+                new AllowedStructure(){ EntityType = EntityType.CV, FactionGroups = FactionGroups.Faction },
+                };
+            public string[] ForbiddenPlayfields { get; set; } = new string[] { "" };
+            public List<TeleporterRoute> TeleporterRoutes { get; set; } = new List<TeleporterRoute>();
+        }
+
+        // ===================================================
+        public ConfigurationAndDB Configuration { get; set; }
         public List<TeleporterRoute> TeleporterRoutes { get; set; } = new List<TeleporterRoute>();
+        // ===================================================
+
+        public ConfigurationManager<ConfigurationAndDB> Settings { get; set; }
         public static Action<string, LogLevel> LogDB { get; set; }
+        public Func<int, int, Task<bool>> AreAllies { get; set; }
 
         private static void log(string aText, LogLevel aLevel)
         {
             LogDB?.Invoke(aText, aLevel);
+        }
+        public TeleporterDB()
+        {
+        }
+
+        public TeleporterDB(string configurationFilename)
+        {
+            Settings = new ConfigurationManager<ConfigurationAndDB>()
+            {
+                ConfigFilename = configurationFilename
+            };
+
+            Settings.Load();
+            ReadOldSettingsFile();
+            Settings.Save();
+        }
+
+        private void ReadOldSettingsFile()
+        {
+            var OldDbName = Path.Combine(EmpyrionConfiguration.SaveGameModPath, "TeleporterDB.xml");
+            if (File.Exists(OldDbName))
+            {
+                var convert = new ConfigurationManager<TeleporterDB>()
+                {
+                    FileFormat = ConfigurationFileFormat.XML,
+                    ConfigFilename = OldDbName
+                };
+
+                convert.Load();
+                Settings.Current = convert.Current.Configuration;
+                Settings.Current.TeleporterRoutes = convert.Current.TeleporterRoutes;
+
+                File.Delete(OldDbName);
+            }
         }
 
         bool IsPermissionGranted(TeleporterRoute aRoute, PlayerInfo aPlayer)
         {
             return aRoute.Permission == TeleporterPermission.PublicAccess  ? true :
                    aRoute.Permission == TeleporterPermission.FactionAccess ? aRoute.PermissionId == aPlayer.factionId :
+                   aRoute.Permission == TeleporterPermission.AlliesAccess  ? AreAllies(aRoute.PermissionId, aPlayer.factionId).Result :
                    aRoute.Permission == TeleporterPermission.PrivateAccess ? aRoute.PermissionId == aPlayer.entityId  : false;
         }
 
@@ -84,7 +153,7 @@ namespace EmpyrionTeleporter
             var FoundEntity = SearchEntity(aGlobalStructureList, aSourceId);
             if (FoundEntity == null) return;
 
-            var FoundRoute = TeleporterRoutes.FirstOrDefault(R => R.Permission == aPermission && IsPermissionGranted(R, aPlayer) &&
+            var FoundRoute = Settings.Current.TeleporterRoutes.FirstOrDefault(R => R.Permission == aPermission && IsPermissionGranted(R, aPlayer) &&
                     ((R.A.Id == aSourceId && R.B.Id == aTargetId) || (R.B.Id == aSourceId && R.A.Id == aTargetId)));
 
             var RelativePos = GetVector3(aPlayer.pos) - GetVector3(FoundEntity.Data.pos);
@@ -97,17 +166,18 @@ namespace EmpyrionTeleporter
 
             if (FoundRoute == null)
             {
-                TeleporterRoutes.Add(FoundRoute = new TeleporterRoute()
+                Settings.Current.TeleporterRoutes.Add(FoundRoute = new TeleporterRoute()
                 {
                     Permission   = aPermission,
                     PermissionId = aPermission == TeleporterPermission.PublicAccess ? 0 :
                                    aPermission == TeleporterPermission.FactionAccess ? aPlayer.factionId :
+                                   aPermission == TeleporterPermission.AlliesAccess  ? aPlayer.factionId :
                                    aPermission == TeleporterPermission.PrivateAccess ? aPlayer.entityId : 0,
                     A = new TeleporterData() { Id = aSourceId, Position = RelativePos, Rotation = NormRot },
                     B = new TeleporterData() { Id = aTargetId }
                 });
 
-                TeleporterRoutes = TeleporterRoutes.OrderBy(T => T.Permission).ToList();
+                Settings.Current.TeleporterRoutes = Settings.Current.TeleporterRoutes.OrderBy(T => T.Permission).ToList();
             }
             else if (FoundRoute.A.Id == aSourceId && FoundRoute.B.Id == aTargetId)
             {
@@ -141,15 +211,15 @@ namespace EmpyrionTeleporter
 
         public int Delete(int aSourceId, int aTargetId)
         {
-            var OldCount = TeleporterRoutes.Count();
-            TeleporterRoutes = aTargetId == 0
-                ? TeleporterRoutes.Where(T => T.A.Id != aSourceId && T.B.Id != aSourceId)
+            var OldCount = Settings.Current.TeleporterRoutes.Count();
+            Settings.Current.TeleporterRoutes = aTargetId == 0
+                ? Settings.Current.TeleporterRoutes.Where(T => T.A.Id != aSourceId && T.B.Id != aSourceId)
                                   .ToList()
-                : TeleporterRoutes.Where(T => !((T.A.Id == aSourceId && T.B.Id == aTargetId) ||
+                : Settings.Current.TeleporterRoutes.Where(T => !((T.A.Id == aSourceId && T.B.Id == aTargetId) ||
                                                 (T.A.Id == aTargetId && T.B.Id == aSourceId)))
                                   .ToList();
 
-            return OldCount - TeleporterRoutes.Count();
+            return OldCount - Settings.Current.TeleporterRoutes.Count();
         }
 
         bool IsNearPos(GlobalStructureList aGlobalStructureList, TeleporterData aTarget, PVector3 aTestPos)
@@ -174,7 +244,7 @@ namespace EmpyrionTeleporter
 
         public IEnumerable<TeleporterRoute> List(int aStructureId, PlayerInfo aPlayer)
         {
-            return TeleporterRoutes.Where(T => (T.A.Id == aStructureId || T.B.Id == aStructureId) && IsPermissionGranted(T, aPlayer));
+            return Settings.Current.TeleporterRoutes.Where(T => (T.A.Id == aStructureId || T.B.Id == aStructureId) && IsPermissionGranted(T, aPlayer));
         }
 
         public static TeleporterTargetData GetCurrentTeleportTargetPosition(GlobalStructureList aGlobalStructureList, TeleporterData aTarget)
@@ -204,46 +274,12 @@ namespace EmpyrionTeleporter
         {
             //log($"T:{TeleporterRoutes.Aggregate("", (s, t) => s + " " + t.ToString())} => {aGlobalStructureList.globalStructures.Aggregate("", (s, p) => s + p.Key + ":" + p.Value.Aggregate("", (ss, pp) => ss + " " + pp.id + "/" + pp.name))}");
 
-            foreach (var I in TeleporterRoutes.Where(T => T.B.Position != Vector3.Zero && IsPermissionGranted(T, aPlayer)))
+            foreach (var I in Settings.Current.TeleporterRoutes.Where(T => T.B.Position != Vector3.Zero && IsPermissionGranted(T, aPlayer)))
             {
                 if (IsNearPos(aGlobalStructureList, I.A, aPlayer.pos)) return GetCurrentTeleportTargetPosition(aGlobalStructureList, I.B);
                 if (IsNearPos(aGlobalStructureList, I.B, aPlayer.pos)) return GetCurrentTeleportTargetPosition(aGlobalStructureList, I.A);
             }
             return null;
-        }
-
-        public void SaveDB(string DBFileName)
-        {
-            var serializer = new XmlSerializer(typeof(TeleporterDB));
-            Directory.CreateDirectory(Path.GetDirectoryName(DBFileName));
-            using (var writer = XmlWriter.Create(DBFileName, new XmlWriterSettings() { Indent = true, IndentChars = "  " }))
-            {
-                serializer.Serialize(writer, this);
-            }
-        }
-
-        public static TeleporterDB ReadDB(string DBFileName)
-        {
-            if (!File.Exists(DBFileName))
-            {
-                log($"TeleporterDB ReadDB not found '{DBFileName}'", LogLevel.Error);
-                return new TeleporterDB();
-            }
-
-            try
-            {
-                log($"TeleporterDB ReadDB load '{DBFileName}'", LogLevel.Message);
-                var serializer = new XmlSerializer(typeof(TeleporterDB));
-                using (var reader = XmlReader.Create(DBFileName))
-                {
-                    return (TeleporterDB)serializer.Deserialize(reader);
-                }
-            }
-            catch(Exception Error)
-            {
-                log("TeleporterDB ReadDB" + Error.ToString(), LogLevel.Error);
-                return new TeleporterDB();
-            }
         }
 
         public static Vector3 GetVector3(PVector3 aVector)

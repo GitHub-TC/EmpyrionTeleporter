@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Eleon.Modding;
+using EmpyrionNetAPITools;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace EmpyrionTeleporter.Tests
@@ -30,18 +31,18 @@ namespace EmpyrionTeleporter.Tests
             var P = new PlayerInfo() { factionId = 1, playfield = "Akua", pos = new PVector3(-1082.451f, 77.67921f, 2034.332f) };
             var P2 = new PlayerInfo() { factionId = 1, playfield = "Akua", pos = new PVector3(-182.451f, 77.67921f, 234.332f) };
 
-            TeleporterDB db = new TeleporterDB();
+            TeleporterDB db = new TeleporterDB("./TeleportDB.json");
             db.AddRoute(G, TeleporterPermission.PublicAccess, 4005, 4004, P);
             db.AddRoute(G, TeleporterPermission.PublicAccess, 4004, 4005, P2);
 
-            db.SaveDB("./TeleportDB.xml");
+            db.Settings.Save();
 
             var Found = db.SearchRoute(G, P);
             Assert.IsNotNull(Found);
             Assert.IsTrue(Found.Id != 0);
 
-            var Test = TeleporterDB.ReadDB("./TeleportDB.xml");
-            Assert.AreEqual(1, Test.TeleporterRoutes.Count);
+            db.Settings.Load();
+            Assert.AreEqual(1, db.Settings.Current.TeleporterRoutes.Count);
         }
 
         [TestMethod]

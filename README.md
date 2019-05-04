@@ -37,6 +37,7 @@ Die Kommandos funktionieren NUR im Fraktionschat!
 * /tt cleanup => Löscht alle Teleporterrouten die zu gelöschten Strukturen führen (nur ab Moderator erlaubt)
 * /tt private <SourceId> <TargetId> => Privaten Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für den Spieler nutzbar ist.
 * /tt faction <SourceId> <TargetId> => Fraktions Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für die Fraktion nutzbar ist.
+* /tt allies <SourceId> <TargetId> => Fraktions/Allierte Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für die Fraktion und deren Allierte nutzbar ist.
 * /tt <SourceId> <TargetId> => Öffentlichen Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten.
 
 Beispiel:
@@ -117,6 +118,7 @@ All commands only work in faction chat!
 * /tt cleanup : remove all teleport connections to deleted structures (only Moderators can use it)
 * /tt private <SourceId> <TargetId> : set a private teleport location from the player current position relative to the source ID and target ID. Private means only that player can use this teleporter
 * /tt faction <SourceId> <TargetId> : set a faction teleport location from the player current position relative to the source ID and target ID. Faction means all of that faction can use this teleporter
+* /tt allies <SourceId> <TargetId> : set a faction/allies teleport location from the player current position relative to the source ID and target ID. Faction means all of that faction and allies can use this teleporter
 * /tt <SourceId> <TargetId> : public teleporter from current position
 
 Example:

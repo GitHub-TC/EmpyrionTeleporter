@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>EmpyrionTeleporter</RootNamespace>
     <AssemblyName>EmpyrionTeleporter</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
@@ -38,37 +38,37 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EmpyrionAPIDefinitions">
-      <HintPath>..\dependencies\EmpyrionAPIDefinitions.dll</HintPath>
-    </Reference>
-    <Reference Include="EmpyrionAPITools">
-      <HintPath>..\dependencies\EmpyrionAPITools.dll</HintPath>
+    <Reference Include="EmpyrionNetAPI, Version=1.0.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\EmpyrionNetAPI.1.0.1\lib\net461\EmpyrionNetAPI.dll</HintPath>
     </Reference>
     <Reference Include="Mif">
       <HintPath>..\dependencies\Mif.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Numerics" />
+    <Reference Include="System.Numerics.Vectors" />
     <Reference Include="System.XML" />
-    <Reference Include="YamlDotNet, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\YamlDotNet.5.0.1\lib\net35\YamlDotNet.dll</HintPath>
+    <Reference Include="YamlDotNet, Version=6.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
+      <HintPath>..\packages\YamlDotNet.6.0.0\lib\net45\YamlDotNet.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration.cs" />
-    <Compile Include="EmpyrionConfiguration.cs" />
     <Compile Include="EmpyrionTeleporter.cs" />
-    <Compile Include="Matrix4x4.cs" />
-    <Compile Include="Plane.cs" />
+    <Compile Include="NumericExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Quaternion.cs" />
     <Compile Include="TeleporterDB.cs" />
-    <Compile Include="Vector3.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ILMerge.props" />
+    <Content Include="ModAppConfig.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
@@ -76,7 +76,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(TargetPath)" "C:\steamcmd\empyrion\Content\Mods\ModLoader\MODs\EmpyrionTeleporter" /Y</PostBuildEvent>
+    <PostBuildEvent>xcopy "$(TargetDir)*.dll" "C:\steamcmd\empyrion\Content\Mods\ModLoader\MODs\EmpyrionTeleporter" /Y
+xcopy "$(TargetDir)*.json" "C:\steamcmd\empyrion\Content\Mods\ModLoader\MODs\EmpyrionTeleporter" /Y</PostBuildEvent>
   </PropertyGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
