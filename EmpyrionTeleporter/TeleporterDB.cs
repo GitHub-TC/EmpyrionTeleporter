@@ -10,7 +10,6 @@ using Newtonsoft.Json.Converters;
 using EmpyrionNetAPITools;
 using System.IO;
 using System.Threading.Tasks;
-using System.Threading;
 using System.Xml.Serialization;
 
 namespace EmpyrionTeleporter
@@ -131,7 +130,6 @@ namespace EmpyrionTeleporter
         {
             try
             {
-                //Thread.Sleep(10000);
                 var OldDbName = Path.Combine(EmpyrionConfiguration.SaveGameModPath, "TeleporterDB.xml");
                 if (File.Exists(OldDbName))
                 {
