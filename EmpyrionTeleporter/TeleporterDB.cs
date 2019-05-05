@@ -10,6 +10,8 @@ using Newtonsoft.Json.Converters;
 using EmpyrionNetAPITools;
 using System.IO;
 using System.Threading.Tasks;
+using System.Threading;
+using System.Xml.Serialization;
 
 namespace EmpyrionTeleporter
 {
@@ -97,8 +99,11 @@ namespace EmpyrionTeleporter
         public List<TeleporterRoute> TeleporterRoutes { get; set; } = new List<TeleporterRoute>();
         // ===================================================
 
+        [XmlIgnore]
         public ConfigurationManager<ConfigurationAndDB> Settings { get; set; }
+        [XmlIgnore]
         public static Action<string, LogLevel> LogDB { get; set; }
+        [XmlIgnore]
         public Func<int, int, Task<bool>> AreAllies { get; set; }
 
         private static void log(string aText, LogLevel aLevel)
@@ -111,6 +116,7 @@ namespace EmpyrionTeleporter
 
         public TeleporterDB(string configurationFilename)
         {
+            ConfigurationManager<ConfigurationAndDB>.Log = S => log(S, LogLevel.Error);
             Settings = new ConfigurationManager<ConfigurationAndDB>()
             {
                 ConfigFilename = configurationFilename
@@ -123,20 +129,29 @@ namespace EmpyrionTeleporter
 
         private void ReadOldSettingsFile()
         {
-            var OldDbName = Path.Combine(EmpyrionConfiguration.SaveGameModPath, "TeleporterDB.xml");
-            if (File.Exists(OldDbName))
+            try
             {
-                var convert = new ConfigurationManager<TeleporterDB>()
+                //Thread.Sleep(10000);
+                var OldDbName = Path.Combine(EmpyrionConfiguration.SaveGameModPath, "TeleporterDB.xml");
+                if (File.Exists(OldDbName))
                 {
-                    FileFormat = ConfigurationFileFormat.XML,
-                    ConfigFilename = OldDbName
-                };
+                    ConfigurationManager<TeleporterDB>.Log = S => log(S, LogLevel.Error);
+                    var convert = new ConfigurationManager<TeleporterDB>()
+                    {
+                        FileFormat = ConfigurationFileFormat.XML,
+                        ConfigFilename = OldDbName
+                    };
 
-                convert.Load();
-                Settings.Current = convert.Current.Configuration;
-                Settings.Current.TeleporterRoutes = convert.Current.TeleporterRoutes;
+                    convert.Load();
+                    if (convert.Current?.Configuration    != null) Settings.Current                  = convert.Current.Configuration;
+                    if (convert.Current?.TeleporterRoutes != null) Settings.Current.TeleporterRoutes = convert.Current.TeleporterRoutes;
 
-                File.Delete(OldDbName);
+                    File.Delete(OldDbName);
+                }
+            }
+            catch (Exception error)
+            {
+                log($"ReadOldSettingsFile: {error}", LogLevel.Error);
             }
         }
 
