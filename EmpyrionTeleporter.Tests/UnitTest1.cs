@@ -45,17 +45,5 @@ namespace EmpyrionTeleporter.Tests
             Assert.AreEqual(1, db.Settings.Current.TeleporterRoutes.Count);
         }
 
-        [TestMethod]
-        public void TestDedicatedYaml()
-        {
-            var CurrentAssembly = Assembly.GetAssembly(typeof(EmpyrionTeleporter));
-            var x = $"\n\n{CurrentAssembly.GetAttribute<AssemblyTitleAttribute>()?.Title} {CurrentAssembly.GetAttribute<AssemblyFileVersionAttribute>()?.Version} by {CurrentAssembly.GetAttribute<AssemblyCompanyAttribute>()?.Company}";
-
-            var Dedi = new EmpyrionConfiguration.DedicatedYamlStruct(Path.Combine(EmpyrionConfiguration.ProgramPath, @"..\..\" + EmpyrionConfiguration.DedicatedFilename));
-
-            Assert.AreEqual("DediGame",             Dedi.SaveGameName);
-            Assert.AreEqual("Default Akua-Omicron", Dedi.CustomScenarioName);
-        }
-
     }
 }

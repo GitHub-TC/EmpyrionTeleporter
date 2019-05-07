@@ -40,10 +40,6 @@ namespace EmpyrionTeleporter
         public TeleporterDB TeleporterDB { get; set; }
 
         Dictionary<int, IdPlayfieldPositionRotation> PlayerLastGoodPosition = new Dictionary<int, IdPlayfieldPositionRotation>();
-        private List<FactionInfo> AllFactions;
-        private bool Allied;
-        private AlliancesTable Allies;
-        private bool Allied2;
 
         enum SubCommand
         {
@@ -108,13 +104,7 @@ namespace EmpyrionTeleporter
             var allyTest1 = f1.factionId << 16 | f2.factionId;
             var allyTest2 = f2.factionId << 16 | f1.factionId;
 
-            AllFactions = allFactions;
-            Allied = allied;
-            Allies = allies;
-
             if (allies.alliances != null && (allies.alliances.Contains(allyTest1) || allies.alliances.Contains(allyTest2))) allied = !allied; // default changed
-
-            Allied2 = allied;
 
             return allied;
         }
