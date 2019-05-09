@@ -90,12 +90,12 @@ namespace EmpyrionTeleporter
             };
         }
 
-        private async Task<bool> AreAllies(int fractionId, int testFactionId)
+        private async Task<bool> AreAllies(int factionId, int testFactionId)
         {
-            if (fractionId == testFactionId) return true;
+            if (factionId == testFactionId) return true;
 
-            var allFactions = (await Request_Get_Factions(new Id(1))).factions;
-            var f1 = allFactions.FirstOrDefault(F => F.factionId == fractionId);
+            var allFactions = (await Request_Get_Factions(new Id(0))).factions;
+            var f1 = allFactions.FirstOrDefault(F => F.factionId == factionId);
             var f2 = allFactions.FirstOrDefault(F => F.factionId == testFactionId);
 
             var allied = f1.origin == f2.origin;  // default allied
@@ -106,7 +106,18 @@ namespace EmpyrionTeleporter
 
             if (allies.alliances != null && (allies.alliances.Contains(allyTest1) || allies.alliances.Contains(allyTest2))) allied = !allied; // default changed
 
+            log($"AreAlliesResult:{allied}\n" +
+                $"Routefaction:{factionId}/{GetName(allFactions, factionId)} Origin:{f1.origin} Playerfaction:{testFactionId}/{GetName(allFactions, testFactionId)} Origin:{f2.origin}" +
+                allies.alliances?.Aggregate($"\nFactions:#{allFactions.Count} AlliesChange:#{allies.alliances.Count}", (S, A) => S + $"\nChangeallied:{A >> 16}/{GetName(allFactions, A >> 16)} <=> {A & 0x0000ffff}/{GetName(allFactions, A & 0x0000ffff)}"),
+                LogLevel.Message);
+
             return allied;
+        }
+
+        private static string GetName(List<FactionInfo> allFactions, int A)
+        {
+            var findFaction = allFactions.FirstOrDefault(F => F.factionId == A);
+            return findFaction.factionId == 0 ? "???" : $"{findFaction.abbrev}";
         }
 
         enum ChatType
