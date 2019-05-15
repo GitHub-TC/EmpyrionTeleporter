@@ -61,7 +61,6 @@ namespace EmpyrionTeleporter
         public override void Initialize(ModGameAPI aGameAPI)
         {
             GameAPI = aGameAPI;
-            verbose = true;
             LogLevel = LogLevel.Message;
 
             log($"**HandleEmpyrionTeleporter loaded: {string.Join(" ", Environment.GetCommandLineArgs())}", LogLevel.Message);
