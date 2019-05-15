@@ -12,43 +12,43 @@ Ein Teleport zwischen zwei vorher eingerichteten Positionen. Dabei muss der Spie
 #### Anleitung zum Einrichten eines virtuellen Teleporters:
 Befehle über die Fraktionstextleiste eingeben (Fraktionschat: entspricht der ; Semikolon oder Kommataste)
 * Als erstes stelle dich an die Stelle von wo du den ersten Teleporterpunkt setzen möchtest... z.B. in deiner Base. Wie man diesen Platz einrichtet ist völlig egal. Am besten ein LED Pad mit Aufschrift teleport nach xy.... und ihn vielleicht farblich markieren damit man ihn wiederfindet.
-Dann gibst du folgenden Befehl ein: /tt 1234567 7654321 und Entertaste wobei die erste Zahl der ID deiner Basis entspricht und nach einer Leertaste die ID deines Zieles entspricht. Dies kann ein Raumschiff oder eine weitere Basis sein.
+Dann gibst du folgenden Befehl ein: \tt 1234567 7654321 und Entertaste wobei die erste Zahl der ID deiner Basis entspricht und nach einer Leertaste die ID deines Zieles entspricht. Dies kann ein Raumschiff oder eine weitere Basis sein.
 So der erste Telepunkt ist nun gesetzt.
 * Nun begebe dich zu deinem Zielort. Stelle dort auch ein Display auf und beschrifte es dem entsprechen z.B. Teleport zur Basis…. und auch hier solltest du ihn vielleicht farblich markieren damit man ihn wiederfindet.
-Dann gib folgenden Befehl ein: /tt 7654321 1234567
+Dann gib folgenden Befehl ein: \tt 7654321 1234567
 Also die ID Nummern in genau umgekehrter Reihenfolge
 
-Und schon ist der Teleporter fertig eingerichtet und du kannst ihn mit /tt benutzen.<br/>
+Und schon ist der Teleporter fertig eingerichtet und du kannst ihn mit \tt benutzen.<br/>
 Viel Spaß beim Teleportieren....
 
 #### Hilfe
 
 Die Kommandos funktionieren NUR im Fraktionschat!
-* /tt help : Zeigt die Kommandos der Mod an
+* \tt help : Zeigt die Kommandos der Mod an
 
 #### Teleport
 
-* /tt => Teleport von dieser (vorher eingerichteten) Position zum Ziel durchführen
-* /tt help => Liste der Kommandos
-* /tt back => Falls ein Teleport schiefgegenen sein sollte kann sich der Spieler hiermit zu der Position VOR dem Teleport zurück teleportieren lassen
-* /tt delete <SourceId> <TargetId> => Löscht alle Teleporterouten von <SourceId> und nach <TargetId> - wenn <TargetId> = 0 ist werden ALLE Routen von <SourceId> gelöscht
-* /tt list <Id> => Listet alle Teleporterouten von und nach <Id> auf
-* /tt listall => Listet alle Teleporterouten auf (nur ab Moderator erlaubt)
-* /tt cleanup => Löscht alle Teleporterrouten die zu gelöschten Strukturen führen (nur ab Moderator erlaubt)
-* /tt private <SourceId> <TargetId> => Privaten Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für den Spieler nutzbar ist.
-* /tt faction <SourceId> <TargetId> => Fraktions Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für die Fraktion nutzbar ist.
-* /tt allies <SourceId> <TargetId> => Fraktions/Allierte Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für die Fraktion und deren Allierte nutzbar ist.
-* /tt <SourceId> <TargetId> => Öffentlichen Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten.
+* \tt => Teleport von dieser (vorher eingerichteten) Position zum Ziel durchführen
+* \tt help => Liste der Kommandos
+* \tt back => Falls ein Teleport schiefgegenen sein sollte kann sich der Spieler hiermit zu der Position VOR dem Teleport zurück teleportieren lassen
+* \tt delete <SourceId> <TargetId> => Löscht alle Teleporterouten von <SourceId> und nach <TargetId> - wenn <TargetId> = 0 ist werden ALLE Routen von <SourceId> gelöscht
+* \tt list <Id> => Listet alle Teleporterouten von und nach <Id> auf
+* \tt listall => Listet alle Teleporterouten auf (nur ab Moderator erlaubt)
+* \tt cleanup => Löscht alle Teleporterrouten die zu gelöschten Strukturen führen (nur ab Moderator erlaubt)
+* \tt private <SourceId> <TargetId> => Privaten Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für den Spieler nutzbar ist.
+* \tt faction <SourceId> <TargetId> => Fraktions Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für die Fraktion nutzbar ist.
+* \tt allies <SourceId> <TargetId> => Fraktions/Allierte Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten der nur für die Fraktion und deren Allierte nutzbar ist.
+* \tt <SourceId> <TargetId> => Öffentlichen Teleportort von der aktuellen Spielerposition relativ zur <SourceId> nach <TargetId> einrichten.
 
 Beispiel:
 - Basis: Akua (Id:1001)
 - CV: Akua Orbit (Id:4004)
 
-1. Auf/Bei der Basis die Position des Spielers markieren (Textur, LCD, Farbe,...) und das Kommando "/tt 1001 4004" aufrufen
+1. Auf/Bei der Basis die Position des Spielers markieren (Textur, LCD, Farbe,...) und das Kommando "\tt 1001 4004" aufrufen
 2. Zum CV reisen (noch manuell) ;-)
-3. Auf/Bei/In dem CV die Position des Spielers markieren (Textur, LCD, Farbe,...) und das Kommando "/tt 4004 1001" aufrufen
+3. Auf/Bei/In dem CV die Position des Spielers markieren (Textur, LCD, Farbe,...) und das Kommando "\tt 4004 1001" aufrufen
 
-=> Nun ist eine Teleporterroute eingerichtet und kann von den beiden markierten Positionen aus benutzt werden in dem der Spieler, an der Position stehend, im Fraktionschat den Befehl /tt absetzt.
+=> Nun ist eine Teleporterroute eingerichtet und kann von den beiden markierten Positionen aus benutzt werden in dem der Spieler, an der Position stehend, im Fraktionschat den Befehl \tt absetzt.
 
 HINWEIS: Da Empyrion es mit den Positionen beim Teleport nicht so genau nimmt sollte der Raum um einen herum ausreichend Platz bieten ;-)
 
@@ -106,31 +106,31 @@ Have fun teleporting ....
 #### Help
 
 All commands only work in faction chat!
-* /tt help : show useful information and commands about the MOD
+* \tt help : show useful information and commands about the MOD
 
 #### Teleport
 
-* /tt : teleport the player from previously configured position to the destination
-* /tt help : show all commands
-* /tt back : if a teleport failed, the player can get back to the position he came from
-* /tt delete <SourceId> <TargetId> => Deletes all teleport routes from <SourceId> and after <TargetId> - when <TargetId> = 0 ALL routes from <SourceId> will be deleted
-* /tt list <Id> : show all teleport connections from and to this ID
-* /tt listall : show all teleport connections (only Moderators can use it)
-* /tt cleanup : remove all teleport connections to deleted structures (only Moderators can use it)
-* /tt private <SourceId> <TargetId> : set a private teleport location from the player current position relative to the source ID and target ID. Private means only that player can use this teleporter
-* /tt faction <SourceId> <TargetId> : set a faction teleport location from the player current position relative to the source ID and target ID. Faction means all of that faction can use this teleporter
-* /tt allies <SourceId> <TargetId> : set a faction/allies teleport location from the player current position relative to the source ID and target ID. Faction means all of that faction and allies can use this teleporter
-* /tt <SourceId> <TargetId> : public teleporter from current position
+* \tt : teleport the player from previously configured position to the destination
+* \tt help : show all commands
+* \tt back : if a teleport failed, the player can get back to the position he came from
+* \tt delete <SourceId> <TargetId> => Deletes all teleport routes from <SourceId> and after <TargetId> - when <TargetId> = 0 ALL routes from <SourceId> will be deleted
+* \tt list <Id> : show all teleport connections from and to this ID
+* \tt listall : show all teleport connections (only Moderators can use it)
+* \tt cleanup : remove all teleport connections to deleted structures (only Moderators can use it)
+* \tt private <SourceId> <TargetId> : set a private teleport location from the player current position relative to the source ID and target ID. Private means only that player can use this teleporter
+* \tt faction <SourceId> <TargetId> : set a faction teleport location from the player current position relative to the source ID and target ID. Faction means all of that faction can use this teleporter
+* \tt allies <SourceId> <TargetId> : set a faction/allies teleport location from the player current position relative to the source ID and target ID. Faction means all of that faction and allies can use this teleporter
+* \tt <SourceId> <TargetId> : public teleporter from current position
 
 Example:
 - Basis: Akua (Id:1001)
 - CV: Akua Orbit (Id:4004)
 
-1. Mark on/in the base a teleporter spot and use the command "/tt 1001 4004"
+1. Mark on/in the base a teleporter spot and use the command "\tt 1001 4004"
 2. Visit your CV ;-)
-3. Mark on/in the CV a teleporter spot and use the command "/tt 4004 1001"
+3. Mark on/in the CV a teleporter spot and use the command "\tt 4004 1001"
 
-=> Now a teleporter route is set up and can be used from the two marked positions in which the player, standing at the position, places the command /tt in the fraction chat.
+=> Now a teleporter route is set up and can be used from the two marked positions in which the player, standing at the position, places the command \tt in the fraction chat.
 
 HINWEIS: Keep in mind that before you use the teleport commands you need to wait a bit until the Empyrion API registers your player position. Otherwise it is not 100% accurate. ;-)
 
