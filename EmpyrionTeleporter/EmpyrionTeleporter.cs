@@ -61,11 +61,11 @@ namespace EmpyrionTeleporter
         public override void Initialize(ModGameAPI aGameAPI)
         {
             GameAPI = aGameAPI;
-            LogLevel = LogLevel.Message;
 
             log($"**HandleEmpyrionTeleporter loaded: {string.Join(" ", Environment.GetCommandLineArgs())}", LogLevel.Message);
 
             InitializeTeleporterDB();
+            LogLevel = TeleporterDB.Settings.Current.LogLevel;
 
             ChatCommands.Add(new ChatCommand(@"\\tt",                                            (I, A) => ExecAlignCommand(SubCommand.Teleport, TeleporterPermission.PublicAccess,  I, A), "Execute teleport"));
             ChatCommands.Add(new ChatCommand(@"\\tt help",                                       (I, A) => ExecAlignCommand(SubCommand.Help,     TeleporterPermission.PublicAccess,  I, A), "Display help"));

@@ -78,6 +78,8 @@ namespace EmpyrionTeleporter
 
         public class ConfigurationAndDB
         {
+            [JsonConverter(typeof(StringEnumConverter))]
+            public LogLevel LogLevel { get; set; } = LogLevel.Message;
             public int PreparePlayerForTeleport { get; set; } = 10;
             public int HoldPlayerOnPositionAfterTeleport { get; set; } = 20;
             public int CostsPerTeleporterPosition { get; set; }
@@ -115,7 +117,7 @@ namespace EmpyrionTeleporter
 
         public TeleporterDB(string configurationFilename)
         {
-            ConfigurationManager<ConfigurationAndDB>.Log = S => log(S, LogLevel.Error);
+            ConfigurationManager<ConfigurationAndDB>.Log = S => log(S, Settings != null && Settings.Current != null ? Settings.Current.LogLevel : LogLevel.Error);
             Settings = new ConfigurationManager<ConfigurationAndDB>()
             {
                 ConfigFilename = configurationFilename
