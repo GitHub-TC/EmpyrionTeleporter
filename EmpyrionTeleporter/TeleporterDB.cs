@@ -80,7 +80,7 @@ namespace EmpyrionTeleporter
         {
             [JsonConverter(typeof(StringEnumConverter))]
             public LogLevel LogLevel { get; set; } = LogLevel.Message;
-            public string ChatCommandPrefix { get; set; } = "\\";
+            public string ChatCommandPrefix { get; set; } = "/\\";
             public int PreparePlayerForTeleport { get; set; } = 10;
             public int HoldPlayerOnPositionAfterTeleport { get; set; } = 20;
             public int CostsPerTeleporterPosition { get; set; }
