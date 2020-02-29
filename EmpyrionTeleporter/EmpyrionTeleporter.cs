@@ -62,7 +62,7 @@ namespace EmpyrionTeleporter
         {
             GameAPI = aGameAPI;
 
-            log($"**HandleEmpyrionTeleporter loaded: {string.Join(" ", Environment.GetCommandLineArgs())}", LogLevel.Message);
+            Log($"**HandleEmpyrionTeleporter loaded: {string.Join(" ", Environment.GetCommandLineArgs())}", LogLevel.Message);
 
             InitializeTeleporterDB();
             LogLevel = TeleporterDB.Settings.Current.LogLevel;
@@ -83,7 +83,7 @@ namespace EmpyrionTeleporter
 
         private void InitializeTeleporterDB()
         {
-            TeleporterDB.LogDB = log;
+            TeleporterDB.LogDB = Log;
             TeleporterDB = new TeleporterDB(Path.Combine(EmpyrionConfiguration.SaveGameModPath, "Teleporters.json"))
             {
                 AreAllies = AreAllies
@@ -106,7 +106,7 @@ namespace EmpyrionTeleporter
 
             if (allies.alliances != null && (allies.alliances.Contains(allyTest1) || allies.alliances.Contains(allyTest2))) allied = !allied; // default changed
 
-            log($"AreAlliesResult:{allied}\n" +
+            Log($"AreAlliesResult:{allied}\n" +
                 $"Routefaction:{factionId}/{GetName(allFactions, factionId)} Origin:{f1.origin} Playerfaction:{testFactionId}/{GetName(allFactions, testFactionId)} Origin:{f2.origin}" +
                 allies.alliances?.Aggregate($"\nFactions:#{allFactions.Count} AlliesChange:#{allies.alliances.Count}", (S, A) => S + $"\nChangeallied:{A >> 16}/{GetName(allFactions, A >> 16)} <=> {A & 0x0000ffff}/{GetName(allFactions, A & 0x0000ffff)}"),
                 LogLevel.Message);
@@ -128,7 +128,7 @@ namespace EmpyrionTeleporter
 
         private async Task ExecAlignCommand(SubCommand aCommand, TeleporterPermission aPermission, ChatInfo info, Dictionary<string, string> args)
         {
-            log($"**HandleEmpyrionTeleporter {info.type}:{info.msg} {args.Aggregate("", (s, i) => s + i.Key + "/" + i.Value + " ")}", LogLevel.Message);
+            Log($"**HandleEmpyrionTeleporter {info.type}:{info.msg} {args.Aggregate("", (s, i) => s + i.Key + "/" + i.Value + " ")}", LogLevel.Message);
 
             if (info.type != (byte)ChatType.Faction) return;
 
@@ -154,7 +154,7 @@ namespace EmpyrionTeleporter
 
             var DeleteList = TeleporterFlatIdList.Where(I => !GlobalFlatIdList.Contains(I)).Distinct();
             var DelCount = DeleteList.Aggregate(0, (C, I) => C + TeleporterDB.Delete(I, 0));
-            log($"CleanUpTeleporterRoutes: {DelCount} Structures: {DeleteList.Aggregate("", (S, I) => S + "," + I)}", LogLevel.Message);
+            Log($"CleanUpTeleporterRoutes: {DelCount} Structures: {DeleteList.Aggregate("", (S, I) => S + "," + I)}", LogLevel.Message);
             InformPlayer(aPlayerId, $"CleanUp: {DelCount} TeleporterRoutes");
 
             if (DelCount > 0) TeleporterDB.Settings.Save();
@@ -181,20 +181,28 @@ namespace EmpyrionTeleporter
             else if (TargetStructure == null) AlertPlayer(P.entityId, $"Structure not found: {aTargetId}");
             else if (!CheckPermission(SourceStructure, TeleporterDB.Settings.Current)) AlertPlayer(P.entityId, $"Structure not allowed: {aSourceId} {(EntityType)SourceStructure.Data.type}/{(FactionGroups)SourceStructure.Data.factionGroup}");
             else if (!CheckPermission(TargetStructure, TeleporterDB.Settings.Current)) AlertPlayer(P.entityId, $"Structure not allowed: {aTargetId} {(EntityType)TargetStructure.Data.type}/{(FactionGroups)TargetStructure.Data.factionGroup}");
-            else if (P.credits < TeleporterDB.Settings.Current.CostsPerTeleporterPosition) AlertPlayer(P.entityId, $"You need {TeleporterDB.Settings.Current.CostsPerTeleporterPosition} credits ;-)");
             else if (TeleporterDB.Settings.Current.ForbiddenPlayfields.Contains(P.playfield)               ||
                         TeleporterDB.Settings.Current.ForbiddenPlayfields.Contains(SourceStructure.Playfield) ||
                         TeleporterDB.Settings.Current.ForbiddenPlayfields.Contains(TargetStructure.Playfield))
             {
                 InformPlayer(aPlayerId, "No teleporter allowed here ;-)");
-                log($"EmpyrionTeleporter: Exec: {P.playerName}/{P.entityId}/{P.clientId} -> no teleport allowed for pos={GetVector3(P.pos).String()} on '{P.playfield}'", LogLevel.Error);
+                Log($"EmpyrionTeleporter: Exec: {P.playerName}/{P.entityId}/{P.clientId} -> no teleport allowed for pos={GetVector3(P.pos).String()} on '{P.playfield}'", LogLevel.Error);
             }
             else
             {
+                var foundRoute  = TeleporterDB.SearchRoute(aPermission, aSourceId, aTargetId, P);
+                var routeUpdate = foundRoute != null && foundRoute.A.Position != Vector3.Zero && foundRoute.B.Position != Vector3.Zero;
+
+                if (!routeUpdate && P.credits < TeleporterDB.Settings.Current.CostsPerTeleporterPosition)
+                {
+                    AlertPlayer(P.entityId, $"You need {TeleporterDB.Settings.Current.CostsPerTeleporterPosition} credits ;-)");
+                    return;
+                }
+
                 TeleporterDB.AddRoute(G, aPermission, aSourceId, aTargetId, P);
                 TeleporterDB.Settings.Save();
 
-                if (TeleporterDB.Settings.Current.CostsPerTeleporterPosition > 0) await Request_Player_SetCredits(new IdCredits(P.entityId, P.credits - TeleporterDB.Settings.Current.CostsPerTeleporterPosition));
+                if (!routeUpdate && TeleporterDB.Settings.Current.CostsPerTeleporterPosition > 0) await Request_Player_SetCredits(new IdCredits(P.entityId, P.credits - TeleporterDB.Settings.Current.CostsPerTeleporterPosition));
 
                 await ShowDialog(aPlayerId, P, "Teleporters", $"\nTeleporter set\n{aSourceId} => {aTargetId}");
             }
@@ -245,7 +253,7 @@ namespace EmpyrionTeleporter
             if (FoundRoute == null)
             {
                 InformPlayer(aPlayerId, "No teleporter position here :-( wait 2min for structure update and try it again please.");
-                log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}/{aPlayer.clientId} -> no route found for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'", LogLevel.Error);
+                Log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}/{aPlayer.clientId} -> no route found for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'", LogLevel.Error);
                 return false;
             }
 
@@ -253,11 +261,11 @@ namespace EmpyrionTeleporter
                 TeleporterDB.Settings.Current.ForbiddenPlayfields.Contains(FoundRoute.Playfield))
             {
                 InformPlayer(aPlayerId, "No teleport allowed here ;-)");
-                log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}/{aPlayer.clientId} -> no teleport allowed for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'", LogLevel.Error);
+                Log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}/{aPlayer.clientId} -> no teleport allowed for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'", LogLevel.Error);
                 return false;
             }
 
-            log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}-> {FoundRoute.Id} on '{FoundRoute.Playfield}' pos={FoundRoute.Position.String()} rot={FoundRoute.Rotation.String()}", LogLevel.Message);
+            Log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}-> {FoundRoute.Id} on '{FoundRoute.Playfield}' pos={FoundRoute.Position.String()} rot={FoundRoute.Rotation.String()}", LogLevel.Message);
 
             if (!PlayerLastGoodPosition.ContainsKey(aPlayer.entityId)) PlayerLastGoodPosition.Add(aPlayer.entityId, null);
             PlayerLastGoodPosition[aPlayer.entityId] = new IdPlayfieldPositionRotation(aPlayer.entityId, aPlayer.playfield, aPlayer.pos, aPlayer.rot);
@@ -369,7 +377,7 @@ namespace EmpyrionTeleporter
 
         private void LogError(string aPrefix, ErrorInfo aError)
         {
-            log($"{aPrefix} Error: {aError.errorType} {aError.ToString()}", LogLevel.Error);
+            Log($"{aPrefix} Error: {aError.errorType} {aError.ToString()}", LogLevel.Error);
         }
 
         private int getIntParam(Dictionary<string, string> aArgs, string aParameterName)

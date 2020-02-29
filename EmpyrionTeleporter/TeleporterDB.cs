@@ -169,8 +169,7 @@ namespace EmpyrionTeleporter
             var FoundEntity = SearchEntity(aGlobalStructureList, aSourceId);
             if (FoundEntity == null) return;
 
-            var FoundRoute = Settings.Current.TeleporterRoutes.FirstOrDefault(R => R.Permission == aPermission && IsPermissionGranted(R, aPlayer) &&
-                    ((R.A.Id == aSourceId && R.B.Id == aTargetId) || (R.B.Id == aSourceId && R.A.Id == aTargetId)));
+            var FoundRoute = SearchRoute(aPermission, aSourceId, aTargetId, aPlayer);
 
             var RelativePos = GetVector3(aPlayer.pos) - GetVector3(FoundEntity.Data.pos);
             var NormRot     = GetVector3(aPlayer.rot) - GetVector3(FoundEntity.Data.rot);
@@ -184,10 +183,10 @@ namespace EmpyrionTeleporter
             {
                 Settings.Current.TeleporterRoutes.Add(FoundRoute = new TeleporterRoute()
                 {
-                    Permission   = aPermission,
+                    Permission = aPermission,
                     PermissionId = aPermission == TeleporterPermission.PublicAccess ? 0 :
                                    aPermission == TeleporterPermission.FactionAccess ? aPlayer.factionId :
-                                   aPermission == TeleporterPermission.AlliesAccess  ? aPlayer.factionId :
+                                   aPermission == TeleporterPermission.AlliesAccess ? aPlayer.factionId :
                                    aPermission == TeleporterPermission.PrivateAccess ? aPlayer.entityId : 0,
                     A = new TeleporterData() { Id = aSourceId, Position = RelativePos, Rotation = NormRot },
                     B = new TeleporterData() { Id = aTargetId }
@@ -207,6 +206,12 @@ namespace EmpyrionTeleporter
                 FoundRoute.B.Position = RelativePos;
                 FoundRoute.B.Rotation = NormRot;
             }
+        }
+
+        public TeleporterRoute SearchRoute(TeleporterPermission aPermission, int aSourceId, int aTargetId, PlayerInfo aPlayer)
+        {
+            return Settings.Current.TeleporterRoutes.FirstOrDefault(R => R.Permission == aPermission && IsPermissionGranted(R, aPlayer) &&
+                                ((R.A.Id == aSourceId && R.B.Id == aTargetId) || (R.B.Id == aSourceId && R.A.Id == aTargetId)));
         }
 
         public class PlayfieldStructureInfo
