@@ -63,6 +63,9 @@ vornehmen.
 * PreparePlayerForTeleport: Zeit in Sekunden die der Spieler sich auf den Teleport vorbereiten kann (Chat schließen, Finger auf die Jetpacktaste und die Leertaste legen... ;-) )
 * CostsPerTeleporterPosition: Creditkosten für das Setzen eines Teleporterpunktes
 * CostsPerTeleport: Creditkosten für das Benutzen eines Teleporterpunktes
+* CommandRestrictions: Legen Sie die minimale Berechtigungsstufe pro Befehl fest
+  - Command: tt, tt back, tt delete, tt list, tt listall, tt cleanup, tt create private, tt create faction, tt create allies, tt create public
+  - RequiredPermissions: Player, Moderator, GameMaster, Admin
 * AllowedStructures: Liste der erlaubten Strukturen für Teleporterpunkte hierbei sind folgende Werte erlaubt
   - EntityType: BA, CV, SV, HV 
   - FactionGroups: Faction, Player, Alien, Admin
@@ -145,6 +148,9 @@ You can configure the mod in
 * PreparePlayerForTeleport: Time in seconds the player can prepare for the teleport (close the chat, put his finger on the Jetpack key and the space bar ... ;-))
 * CostsPerTeleporterPosition: Set credit cost for creating a teleport connection point
 * CostsPerTeleport: Set credit cost for using the teleporter
+* CommandRestrictions: Set minimum permission level per command
+  - Command: tt, tt back, tt delete, tt list, tt listall, tt cleanup, tt create private, tt create faction, tt create allies, tt create public
+  - RequiredPermission: Player, Moderator, GameMaster, Admin
 * AllowedStructures: Set the allowed structures player can use the teleporter on/in
   - EntityType: BA, CV, SV, HV 
   - FactionGroups: Faction, Player, Alien, Admin

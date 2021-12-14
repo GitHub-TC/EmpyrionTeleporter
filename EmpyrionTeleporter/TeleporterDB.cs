@@ -76,6 +76,13 @@ namespace EmpyrionTeleporter
             public FactionGroups FactionGroups { get; set; }
         }
 
+        public class CommandRestriction
+        {
+            public string Command { get; set; }
+            [JsonConverter(typeof(StringEnumConverter))]
+            public PermissionType RequiredPermission { get; set; } = PermissionType.Player;
+        }
+
         public class ConfigurationAndDB
         {
             [JsonConverter(typeof(StringEnumConverter))]
@@ -86,13 +93,26 @@ namespace EmpyrionTeleporter
             public int CostsPerTeleporterPosition { get; set; }
             public int CostsPerTeleport { get; set; }
             public int HealthPack { get; set; } = 4437;
+            public CommandRestriction[] CommandRestrictions { get; set; } = new CommandRestriction[]
+            {
+                new CommandRestriction() { Command = "tt", RequiredPermission = PermissionType.Player },
+                new CommandRestriction() { Command = "tt back", RequiredPermission = PermissionType.Player },
+                new CommandRestriction() { Command = "tt delete", RequiredPermission = PermissionType.Player },
+                new CommandRestriction() { Command = "tt list", RequiredPermission = PermissionType.Player },
+                new CommandRestriction() { Command = "tt listall", RequiredPermission = PermissionType.Moderator },
+                new CommandRestriction() { Command = "tt cleanup", RequiredPermission = PermissionType.Moderator },
+                new CommandRestriction() { Command = "tt create private", RequiredPermission = PermissionType.Player },
+                new CommandRestriction() { Command = "tt create faction", RequiredPermission = PermissionType.Player },
+                new CommandRestriction() { Command = "tt create allies", RequiredPermission = PermissionType.Player },
+                new CommandRestriction() { Command = "tt create public", RequiredPermission = PermissionType.Player },
+            };
             public AllowedStructure[] AllowedStructures { get; set; } = new AllowedStructure[]
-                {
+            {
                 new AllowedStructure(){ EntityType = EntityType.BA, FactionGroups = FactionGroups.Player  },
                 new AllowedStructure(){ EntityType = EntityType.BA, FactionGroups = FactionGroups.Faction },
                 new AllowedStructure(){ EntityType = EntityType.CV, FactionGroups = FactionGroups.Player  },
                 new AllowedStructure(){ EntityType = EntityType.CV, FactionGroups = FactionGroups.Faction },
-                };
+            };
             public string[] ForbiddenPlayfields { get; set; } = new string[] { "" };
             public List<TeleporterRoute> TeleporterRoutes { get; set; } = new List<TeleporterRoute>();
         }
