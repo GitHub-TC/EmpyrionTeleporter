@@ -79,6 +79,7 @@ namespace EmpyrionTeleporter
         public class CommandRestriction
         {
             public string Command { get; set; }
+            [JsonConverter(typeof(StringEnumConverter))]
             public PermissionType RequiredPermission { get; set; } = PermissionType.Player;
         }
 
@@ -92,7 +93,7 @@ namespace EmpyrionTeleporter
             public int CostsPerTeleporterPosition { get; set; }
             public int CostsPerTeleport { get; set; }
             public int HealthPack { get; set; } = 4437;
-            public List<CommandRestriction> CommandRestrictions { get; set; } = new List<CommandRestriction>
+            public CommandRestriction[] CommandRestrictions { get; set; } = new CommandRestriction[]
             {
                 new CommandRestriction() { Command = "tt", RequiredPermission = PermissionType.Player },
                 new CommandRestriction() { Command = "tt back", RequiredPermission = PermissionType.Player },
