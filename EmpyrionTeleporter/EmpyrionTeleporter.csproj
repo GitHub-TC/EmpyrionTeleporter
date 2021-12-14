@@ -92,6 +92,7 @@
     <PostBuildEvent>xcopy "$(TargetDir)*.dll" "C:\steamcmd\empyrion\Content\Mods\ModLoader\MODs\EmpyrionTeleporter" /Y
 xcopy "$(TargetDir)*.json" "C:\steamcmd\empyrion\Content\Mods\ModLoader\MODs\EmpyrionTeleporter" /Y</PostBuildEvent>
   </PropertyGroup>
+  <!--
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
@@ -99,5 +100,6 @@ xcopy "$(TargetDir)*.json" "C:\steamcmd\empyrion\Content\Mods\ModLoader\MODs\Emp
     <Error Condition="!Exists('..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.props'))" />
     <Error Condition="!Exists('..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.targets'))" />
   </Target>
+  -->
   <Import Project="..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.targets" Condition="Exists('..\packages\MSBuild.ILMerge.Task.1.0.5\build\MSBuild.ILMerge.Task.targets')" />
 </Project>

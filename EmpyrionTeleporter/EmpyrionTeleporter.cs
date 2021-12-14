@@ -68,17 +68,27 @@ namespace EmpyrionTeleporter
             LogLevel = TeleporterDB.Settings.Current.LogLevel;
             ChatCommandManager.CommandPrefix = TeleporterDB.Settings.Current.ChatCommandPrefix;
 
-            ChatCommands.Add(new ChatCommand(@"tt",                                            (I, A) => ExecAlignCommand(SubCommand.Teleport, TeleporterPermission.PublicAccess,  I, A), "Execute teleport"));
+            ChatCommands.Add(new ChatCommand(@"tt",                                            (I, A) => ExecAlignCommand(SubCommand.Teleport, TeleporterPermission.PublicAccess,  I, A), "Execute teleport",
+                TeleporterDB.Configuration.CommandRestrictions.Single(o => o.Command == "tt").RequiredPermission));
             ChatCommands.Add(new ChatCommand(@"tt help",                                       (I, A) => ExecAlignCommand(SubCommand.Help,     TeleporterPermission.PublicAccess,  I, A), "Display help"));
-            ChatCommands.Add(new ChatCommand(@"tt back",                                       (I, A) => ExecAlignCommand(SubCommand.Back,     TeleporterPermission.PublicAccess,  I, A), "Teleports the player back to the last (good) position"));
-            ChatCommands.Add(new ChatCommand(@"tt delete (?<SourceId>\d+) (?<TargetId>\d+)",   (I, A) => ExecAlignCommand(SubCommand.Delete,   TeleporterPermission.PublicAccess,  I, A), "Delete all teleportdata from {SourceId} {TargetId}"));
-            ChatCommands.Add(new ChatCommand(@"tt list (?<Id>\d+)",                            (I, A) => ExecAlignCommand(SubCommand.List,     TeleporterPermission.PublicAccess,  I, A), "List all teleportdata from {Id}"));
-            ChatCommands.Add(new ChatCommand(@"tt listall",                                    (I, A) => ExecAlignCommand(SubCommand.ListAll,  TeleporterPermission.PublicAccess,  I, A), "List all teleportdata", PermissionType.Moderator));
-            ChatCommands.Add(new ChatCommand(@"tt cleanup",                                    (I, A) => ExecAlignCommand(SubCommand.CleanUp,  TeleporterPermission.PublicAccess,  I, A), "Removes all teleportdata to deleted structures", PermissionType.Moderator));
-            ChatCommands.Add(new ChatCommand(@"tt private (?<SourceId>\d+) (?<TargetId>\d+)",  (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PrivateAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for you only - must be initialized at {TargetId} too :-)"));
-            ChatCommands.Add(new ChatCommand(@"tt faction (?<SourceId>\d+) (?<TargetId>\d+)",  (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.FactionAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for your faction - must be initialized at {TargetId} too :-)"));
-            ChatCommands.Add(new ChatCommand(@"tt allies (?<SourceId>\d+) (?<TargetId>\d+)",   (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.AlliesAccess,  I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for your faction and allies - must be initialized at {TargetId} too :-)"));
-            ChatCommands.Add(new ChatCommand(@"tt (?<SourceId>\d+) (?<TargetId>\d+)",          (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PublicAccess,  I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for everyone - must be initialized at {TargetId} too :-)"));
+            ChatCommands.Add(new ChatCommand(@"tt back",                                       (I, A) => ExecAlignCommand(SubCommand.Back,     TeleporterPermission.PublicAccess,  I, A), "Teleports the player back to the last (good) position",
+                TeleporterDB.Configuration.CommandRestrictions.Single(o => o.Command == "tt back").RequiredPermission));
+            ChatCommands.Add(new ChatCommand(@"tt delete (?<SourceId>\d+) (?<TargetId>\d+)",   (I, A) => ExecAlignCommand(SubCommand.Delete,   TeleporterPermission.PublicAccess,  I, A), "Delete all teleportdata from {SourceId} {TargetId}",
+                TeleporterDB.Configuration.CommandRestrictions.Single(o => o.Command == "tt delete").RequiredPermission));
+            ChatCommands.Add(new ChatCommand(@"tt list (?<Id>\d+)",                            (I, A) => ExecAlignCommand(SubCommand.List,     TeleporterPermission.PublicAccess,  I, A), "List all teleportdata from {Id}",
+                TeleporterDB.Configuration.CommandRestrictions.Single(o => o.Command == "tt list").RequiredPermission));
+            ChatCommands.Add(new ChatCommand(@"tt listall",                                    (I, A) => ExecAlignCommand(SubCommand.ListAll,  TeleporterPermission.PublicAccess,  I, A), "List all teleportdata",
+                TeleporterDB.Configuration.CommandRestrictions.Single(o => o.Command == "tt listall").RequiredPermission));
+            ChatCommands.Add(new ChatCommand(@"tt cleanup",                                    (I, A) => ExecAlignCommand(SubCommand.CleanUp,  TeleporterPermission.PublicAccess,  I, A), "Removes all teleportdata to deleted structures",
+                TeleporterDB.Configuration.CommandRestrictions.Single(o => o.Command == "tt cleanup").RequiredPermission));
+            ChatCommands.Add(new ChatCommand(@"tt private (?<SourceId>\d+) (?<TargetId>\d+)",  (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PrivateAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for you only - must be initialized at {TargetId} too :-)",
+                TeleporterDB.Configuration.CommandRestrictions.Single(o => o.Command == "tt create private").RequiredPermission));
+            ChatCommands.Add(new ChatCommand(@"tt faction (?<SourceId>\d+) (?<TargetId>\d+)",  (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.FactionAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for your faction - must be initialized at {TargetId} too :-)",
+                TeleporterDB.Configuration.CommandRestrictions.Single(o => o.Command == "tt create faction").RequiredPermission));
+            ChatCommands.Add(new ChatCommand(@"tt allies (?<SourceId>\d+) (?<TargetId>\d+)", (I, A) => ExecAlignCommand(SubCommand.Save, TeleporterPermission.AlliesAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for your faction and allies - must be initialized at {TargetId} too :-)",
+                TeleporterDB.Configuration.CommandRestrictions.Single(o => o.Command == "tt create allies").RequiredPermission));
+            ChatCommands.Add(new ChatCommand(@"tt (?<SourceId>\d+) (?<TargetId>\d+)",          (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PublicAccess,  I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for everyone - must be initialized at {TargetId} too :-)",
+                TeleporterDB.Configuration.CommandRestrictions.Single(o => o.Command == "tt create public").RequiredPermission));
         }
 
         private void InitializeTeleporterDB()
