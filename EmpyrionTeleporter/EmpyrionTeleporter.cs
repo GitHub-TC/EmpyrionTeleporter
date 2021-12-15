@@ -279,8 +279,7 @@ namespace EmpyrionTeleporter
                     }
                     catch (Exception error)
                     {
-                        Log($"Entity_Teleport [{aPlayerId} {P.playerName}]: {error}", LogLevel.Error);
-                        InformPlayer(aPlayerId, $"Entity_Teleport: {error.Message}");
+                        InformPlayer(aPlayerId, $"Entity_Teleport: {error}");
                     }
                 else
                 {
@@ -290,21 +289,12 @@ namespace EmpyrionTeleporter
                     }
                     catch (Exception error)
                     {
-                        Log($"Player_ChangePlayerfield [{aPlayerId} {P.playerName}]: {error}", LogLevel.Error);
-                        InformPlayer(aPlayerId, $"Player_ChangePlayerfield: {error.Message}");
+                        InformPlayer(aPlayerId, $"Player_ChangePlayerfield: {error}");
                     }
                 }
             };
 
-            try
-            {
-                await Request_Player_SetPlayerInfo(new PlayerInfoSet() { entityId = aPlayer.entityId, health = (int)aPlayer.healthMax });
-            }
-            catch (Exception error)
-            {
-                Log($"Player_SetHealth [{aPlayerId} {aPlayer.playerName}]: {error}", LogLevel.Error);
-                InformPlayer(aPlayerId, $"Player_SetHealth: {error.Message}");
-            }
+            await Request_Player_SetPlayerInfo(new PlayerInfoSet() { entityId = aPlayer.entityId, health = (int)aPlayer.healthMax });
 
             new Thread(new ThreadStart(() =>
             {
@@ -312,9 +302,9 @@ namespace EmpyrionTeleporter
                 TryTimer.Start();
                 while (TryTimer.ElapsedMilliseconds < (TeleporterDB.Settings.Current.PreparePlayerForTeleport * 1000))
                 {
+                    Thread.Sleep(2000);
                     var WaitTime = TeleporterDB.Settings.Current.PreparePlayerForTeleport - (int)(TryTimer.ElapsedMilliseconds / 1000);
-                    InformPlayer(aPlayerId, WaitTime > 1 ? $"Prepare for teleport in {WaitTime} sec." : $"Prepare for teleport now.");
-                    if(WaitTime > 0) Thread.Sleep(2000);
+                    InformPlayer(aPlayerId, $"Prepare for teleport in {WaitTime} sec.");
                 }
 
                 ActionTeleportPlayer(aPlayer);
@@ -329,39 +319,32 @@ namespace EmpyrionTeleporter
         {
             new Thread(new ThreadStart(async () =>
             {
-                try
+                PlayerInfo LastPlayerInfo = aCurrentPlayerInfo;
+
+                await Request_Player_SetPlayerInfo(new PlayerInfoSet() { entityId = aCurrentPlayerInfo.entityId, health = (int)aCurrentPlayerInfo.healthMax });
+                await Request_Player_AddItem(new IdItemStack(aCurrentPlayerInfo.entityId, new ItemStack(2389, 1))); // Bandages ;-)
+
+                var TryTimer = new Stopwatch();
+                TryTimer.Start();
+                while (TryTimer.ElapsedMilliseconds < (TeleporterDB.Settings.Current.HoldPlayerOnPositionAfterTeleport * 1000))
                 {
-                    PlayerInfo LastPlayerInfo = aCurrentPlayerInfo;
+                    Thread.Sleep(2000);
+                    var WaitTime = TeleporterDB.Settings.Current.HoldPlayerOnPositionAfterTeleport - (int)(TryTimer.ElapsedMilliseconds / 1000);
 
-                    await Request_Player_SetPlayerInfo(new PlayerInfoSet() { entityId = aCurrentPlayerInfo.entityId, health = (int)aCurrentPlayerInfo.healthMax });
-                    if (TeleporterDB.Settings.Current.HealthPack > 0) await Request_Player_AddItem(new IdItemStack(aCurrentPlayerInfo.entityId, new ItemStack(TeleporterDB.Settings.Current.HealthPack, 1))); // Bandages ;-)
-
-                    var TryTimer = new Stopwatch();
-                    TryTimer.Start();
-                    while (TryTimer.ElapsedMilliseconds < (TeleporterDB.Settings.Current.HoldPlayerOnPositionAfterTeleport * 1000))
+                    try
                     {
-                        Thread.Sleep(2000);
-                        var WaitTime = TeleporterDB.Settings.Current.HoldPlayerOnPositionAfterTeleport - (int)(TryTimer.ElapsedMilliseconds / 1000);
-
-                        try
-                        {
-                            var P = await Request_Player_Info(aPlayerId.ToId());
-                            LastPlayerInfo = P;
-                            if (WaitTime > 0) InformPlayer(aPlayerId, $"Target reached please wait for {WaitTime} sec.");
-                        }
-                        catch (Exception error)
-                        {
-                            InformPlayer(aPlayerId, $"Target reached. {error}");
-                        }
+                        var P = await Request_Player_Info(aPlayerId.ToId());
+                        LastPlayerInfo = P;
+                        if (WaitTime > 0) InformPlayer(aPlayerId, $"Target reached please wait for {WaitTime} sec.");
                     }
-                    if (Vector3.Distance(GetVector3(LastPlayerInfo.pos), aTargetPos) > 3) ActionTeleportPlayer(LastPlayerInfo);
-                    await Request_Player_SetPlayerInfo(new PlayerInfoSet() { entityId = aCurrentPlayerInfo.entityId, health = (int)aCurrentPlayerInfo.healthMax });
-                    InformPlayer(aPlayerId, $"Thank you for traveling with the EmpyrionTeleporter :-)");
+                    catch (Exception error)
+                    {
+                        InformPlayer(aPlayerId, $"Target reached. {error}");
+                    }
                 }
-                catch (Exception error)
-                {
-                    Log($"CheckPlayerStableTargetPos: {error}", LogLevel.Error);
-                }
+                if (Vector3.Distance(GetVector3(LastPlayerInfo.pos), aTargetPos) > 3) ActionTeleportPlayer(LastPlayerInfo);
+                await Request_Player_SetPlayerInfo(new PlayerInfoSet() { entityId = aCurrentPlayerInfo.entityId, health = (int)aCurrentPlayerInfo.healthMax });
+                InformPlayer(aPlayerId, $"Thank you for traveling with the EmpyrionTeleporter :-)");
             })).Start();
         }
 

@@ -85,7 +85,6 @@ namespace EmpyrionTeleporter
             public int HoldPlayerOnPositionAfterTeleport { get; set; } = 20;
             public int CostsPerTeleporterPosition { get; set; }
             public int CostsPerTeleport { get; set; }
-            public int HealthPack { get; set; } = 4437;
             public AllowedStructure[] AllowedStructures { get; set; } = new AllowedStructure[]
                 {
                 new AllowedStructure(){ EntityType = EntityType.BA, FactionGroups = FactionGroups.Player  },
