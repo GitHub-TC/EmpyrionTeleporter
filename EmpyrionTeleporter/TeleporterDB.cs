@@ -76,10 +76,10 @@ namespace EmpyrionTeleporter
             List,
             ListAll,
             Cleanup,
-            CreatePrivateTeleporter,
-            CreateFactionTeleporter,
-            CreateAlliesTeleporter,
-            CreatePublicTeleporter
+            CreatePrivateTeleporters,
+            CreateFactionTeleporters,
+            CreateAllianceTeleporters,
+            CreatePublicTeleporters
         }
 
         public class CommandMinimumPermission
@@ -112,13 +112,14 @@ namespace EmpyrionTeleporter
             {
                 new CommandMinimumPermission() { Command = CommandNameFriendly.UseTeleporters, MinimumRequiredPermission = PermissionType.Player },
                 new CommandMinimumPermission() { Command = CommandNameFriendly.Back, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.Delete, MinimumRequiredPermission = PermissionType.Player },
                 new CommandMinimumPermission() { Command = CommandNameFriendly.List, MinimumRequiredPermission = PermissionType.Player },
                 new CommandMinimumPermission() { Command = CommandNameFriendly.ListAll, MinimumRequiredPermission = PermissionType.Moderator },
                 new CommandMinimumPermission() { Command = CommandNameFriendly.Cleanup, MinimumRequiredPermission = PermissionType.Moderator },
-                new CommandMinimumPermission() { Command = CommandNameFriendly.CreatePrivateTeleporter, MinimumRequiredPermission = PermissionType.Player },
-                new CommandMinimumPermission() { Command = CommandNameFriendly.CreateFactionTeleporter, MinimumRequiredPermission = PermissionType.Player },
-                new CommandMinimumPermission() { Command = CommandNameFriendly.CreateAlliesTeleporter, MinimumRequiredPermission = PermissionType.Player },
-                new CommandMinimumPermission() { Command = CommandNameFriendly.CreatePublicTeleporter, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.CreatePrivateTeleporters, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.CreateFactionTeleporters, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.CreateAllianceTeleporters, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.CreatePublicTeleporters, MinimumRequiredPermission = PermissionType.Player },
             };
             public AllowedStructure[] AllowedStructures { get; set; } = new AllowedStructure[]
                 {
