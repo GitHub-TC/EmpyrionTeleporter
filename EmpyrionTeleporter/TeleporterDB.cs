@@ -68,6 +68,28 @@ namespace EmpyrionTeleporter
             }
         }
 
+        public enum CommandNameFriendly
+        {
+            UseTeleporters,
+            Back,
+            Delete,
+            List,
+            ListAll,
+            Cleanup,
+            CreatePrivateTeleporter,
+            CreateFactionTeleporter,
+            CreateAlliesTeleporter,
+            CreatePublicTeleporter
+        }
+
+        public class CommandMinimumPermission
+        {
+            [JsonConverter(typeof(StringEnumConverter))]
+            public CommandNameFriendly Command { get; set; }
+            [JsonConverter(typeof(StringEnumConverter))]
+            public PermissionType MinimumRequiredPermission { get; set; }
+        }
+
         public class AllowedStructure
         {
             [JsonConverter(typeof(StringEnumConverter))]
@@ -86,6 +108,18 @@ namespace EmpyrionTeleporter
             public int CostsPerTeleporterPosition { get; set; }
             public int CostsPerTeleport { get; set; }
             public int HealthPack { get; set; } = 4437;
+            public CommandMinimumPermission[] CommandMinimumPermissions { get; set; } = new CommandMinimumPermission[]
+            {
+                new CommandMinimumPermission() { Command = CommandNameFriendly.UseTeleporters, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.Back, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.List, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.ListAll, MinimumRequiredPermission = PermissionType.Moderator },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.Cleanup, MinimumRequiredPermission = PermissionType.Moderator },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.CreatePrivateTeleporter, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.CreateFactionTeleporter, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.CreateAlliesTeleporter, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.CreatePublicTeleporter, MinimumRequiredPermission = PermissionType.Player },
+            };
             public AllowedStructure[] AllowedStructures { get; set; } = new AllowedStructure[]
                 {
                 new AllowedStructure(){ EntityType = EntityType.BA, FactionGroups = FactionGroups.Player  },
