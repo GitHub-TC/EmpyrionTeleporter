@@ -68,6 +68,28 @@ namespace EmpyrionTeleporter
             }
         }
 
+        public enum CommandNameFriendly
+        {
+            UseTeleporters,
+            Back,
+            Delete,
+            List,
+            ListAll,
+            Cleanup,
+            CreatePrivateTeleporters,
+            CreateFactionTeleporters,
+            CreateAllianceTeleporters,
+            CreatePublicTeleporters
+        }
+
+        public class CommandMinimumPermission
+        {
+            [JsonConverter(typeof(StringEnumConverter))]
+            public CommandNameFriendly Command { get; set; }
+            [JsonConverter(typeof(StringEnumConverter))]
+            public PermissionType MinimumRequiredPermission { get; set; }
+        }
+
         public class AllowedStructure
         {
             [JsonConverter(typeof(StringEnumConverter))]
@@ -93,18 +115,19 @@ namespace EmpyrionTeleporter
             public int CostsPerTeleporterPosition { get; set; }
             public int CostsPerTeleport { get; set; }
             public int HealthPack { get; set; } = 4437;
-            public CommandRestriction[] CommandRestrictions { get; set; } = new CommandRestriction[]
+
+            public CommandMinimumPermission[] CommandMinimumPermissions { get; set; } = new CommandMinimumPermission[]
             {
-                new CommandRestriction() { Command = "tt", RequiredPermission = PermissionType.Player },
-                new CommandRestriction() { Command = "tt back", RequiredPermission = PermissionType.Player },
-                new CommandRestriction() { Command = "tt delete", RequiredPermission = PermissionType.Player },
-                new CommandRestriction() { Command = "tt list", RequiredPermission = PermissionType.Player },
-                new CommandRestriction() { Command = "tt listall", RequiredPermission = PermissionType.Moderator },
-                new CommandRestriction() { Command = "tt cleanup", RequiredPermission = PermissionType.Moderator },
-                new CommandRestriction() { Command = "tt create private", RequiredPermission = PermissionType.Player },
-                new CommandRestriction() { Command = "tt create faction", RequiredPermission = PermissionType.Player },
-                new CommandRestriction() { Command = "tt create allies", RequiredPermission = PermissionType.Player },
-                new CommandRestriction() { Command = "tt create public", RequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.UseTeleporters, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.Back, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.Delete, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.List, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.ListAll, MinimumRequiredPermission = PermissionType.Moderator },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.Cleanup, MinimumRequiredPermission = PermissionType.Moderator },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.CreatePrivateTeleporters, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.CreateFactionTeleporters, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.CreateAllianceTeleporters, MinimumRequiredPermission = PermissionType.Player },
+                new CommandMinimumPermission() { Command = CommandNameFriendly.CreatePublicTeleporters, MinimumRequiredPermission = PermissionType.Player },
             };
             public AllowedStructure[] AllowedStructures { get; set; } = new AllowedStructure[]
             {
