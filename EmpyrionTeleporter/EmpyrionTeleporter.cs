@@ -83,7 +83,8 @@ namespace EmpyrionTeleporter
 
         private void InitializeTeleporterDB()
         {
-            TeleporterDB.LogDB = Log;
+            TeleporterDB.LogDB     = Log;
+            TeleporterDB.ModAccess = this;
             TeleporterDB = new TeleporterDB(Path.Combine(EmpyrionConfiguration.SaveGameModPath, "Teleporters.json"))
             {
                 AreAllies = AreAllies
@@ -147,12 +148,14 @@ namespace EmpyrionTeleporter
 
         private async Task CleanUpTeleporterRoutes(int aPlayerId)
         {
-            var G = await Request_GlobalStructure_List();
-
-            var GlobalFlatIdList = G.globalStructures.Aggregate(new List<int>(), (L, P) => { L.AddRange(P.Value.Select(S => S.id)); return L; });
             var TeleporterFlatIdList = TeleporterDB.Settings.Current.TeleporterRoutes.Aggregate(new List<int>(), (L, P) => { L.Add(P.A.Id); L.Add(P.B.Id); return L; });
 
-            var DeleteList = TeleporterFlatIdList.Where(I => !GlobalFlatIdList.Contains(I)).Distinct();
+            for (int i = TeleporterFlatIdList.Count - 1; i >= 0; i--)
+            {
+                if ((await Request_GlobalStructure_Info(TeleporterFlatIdList[i].ToId())).id == 0) TeleporterFlatIdList.Remove(i);
+            }
+
+            var DeleteList = TeleporterFlatIdList.Distinct();
             var DelCount = DeleteList.Aggregate(0, (C, I) => C + TeleporterDB.Delete(I, 0));
             Log($"CleanUpTeleporterRoutes: {DelCount} Structures: {DeleteList.Aggregate("", (S, I) => S + "," + I)}", LogLevel.Message);
             InformPlayer(aPlayerId, $"CleanUp: {DelCount} TeleporterRoutes");
@@ -162,25 +165,23 @@ namespace EmpyrionTeleporter
 
         private async Task TeleportPlayer(int aPlayerId)
         {
-            var G = await Request_GlobalStructure_List();
             var P = await Request_Player_Info(aPlayerId.ToId());
 
             if (P.credits < TeleporterDB.Settings.Current.CostsPerTeleport) AlertPlayer(P.entityId, $"You need {TeleporterDB.Settings.Current.CostsPerTeleport} credits ;-)");
-            else if (await ExecTeleportPlayer(G, P, aPlayerId) && TeleporterDB.Settings.Current.CostsPerTeleport > 0) await Request_Player_SetCredits(new IdCredits(P.entityId, P.credits - TeleporterDB.Settings.Current.CostsPerTeleport));
+            else if (await ExecTeleportPlayer(P, aPlayerId) && TeleporterDB.Settings.Current.CostsPerTeleport > 0) await Request_Player_SetCredits(new IdCredits(P.entityId, P.credits - TeleporterDB.Settings.Current.CostsPerTeleport));
         }
 
         private async Task SaveTeleporterRoute(int aPlayerId, TeleporterPermission aPermission, int aSourceId, int aTargetId)
         {
-            var G = await Request_GlobalStructure_List();
             var P = await Request_Player_Info(aPlayerId.ToId());
 
-            var SourceStructure = TeleporterDB.SearchEntity(G, aSourceId);
-            var TargetStructure = TeleporterDB.SearchEntity(G, aSourceId);
+            var SourceStructure = await TeleporterDB.SearchEntity(aSourceId);
+            var TargetStructure = await TeleporterDB.SearchEntity(aTargetId);
 
             if (SourceStructure == null) AlertPlayer(P.entityId, $"Structure not found: {aSourceId}");
             else if (TargetStructure == null) AlertPlayer(P.entityId, $"Structure not found: {aTargetId}");
-            else if (!CheckPermission(SourceStructure, TeleporterDB.Settings.Current)) AlertPlayer(P.entityId, $"Structure not allowed: {aSourceId} {(EntityType)SourceStructure.Data.type}/{(FactionGroups)SourceStructure.Data.factionGroup}");
-            else if (!CheckPermission(TargetStructure, TeleporterDB.Settings.Current)) AlertPlayer(P.entityId, $"Structure not allowed: {aTargetId} {(EntityType)TargetStructure.Data.type}/{(FactionGroups)TargetStructure.Data.factionGroup}");
+            else if (!CheckPermission(SourceStructure, TeleporterDB.Settings.Current)) AlertPlayer(P.entityId, $"Structure not allowed: {SourceStructure.Data.name}({aSourceId}) {(EntityType)SourceStructure.Data.type}/{(FactionGroups)SourceStructure.Data.factionGroup}");
+            else if (!CheckPermission(TargetStructure, TeleporterDB.Settings.Current)) AlertPlayer(P.entityId, $"Structure not allowed: {TargetStructure.Data.name}({aTargetId}) {(EntityType)TargetStructure.Data.type}/{(FactionGroups)TargetStructure.Data.factionGroup}");
             else if (TeleporterDB.Settings.Current.ForbiddenPlayfields.Contains(P.playfield)               ||
                         TeleporterDB.Settings.Current.ForbiddenPlayfields.Contains(SourceStructure.Playfield) ||
                         TeleporterDB.Settings.Current.ForbiddenPlayfields.Contains(TargetStructure.Playfield))
@@ -199,12 +200,12 @@ namespace EmpyrionTeleporter
                     return;
                 }
 
-                TeleporterDB.AddRoute(G, aPermission, aSourceId, aTargetId, P);
+                await TeleporterDB.AddRoute(aPermission, aSourceId, aTargetId, P);
                 TeleporterDB.Settings.Save();
 
                 if (!routeUpdate && TeleporterDB.Settings.Current.CostsPerTeleporterPosition > 0) await Request_Player_SetCredits(new IdCredits(P.entityId, P.credits - TeleporterDB.Settings.Current.CostsPerTeleporterPosition));
 
-                await ShowDialog(aPlayerId, P, "Teleporters", $"\nTeleporter set\n{aSourceId} => {aTargetId}");
+                await ShowDialog(aPlayerId, P, "Teleporters", $"\nTeleporter set\n{SourceStructure.Data.name}({aSourceId}) => {TargetStructure.Data.name}({aTargetId})");
             }
         }
 
@@ -218,15 +219,9 @@ namespace EmpyrionTeleporter
 
         private async Task ListAllTeleporterRoutes(int aPlayerId)
         {
-            var Timer = new Stopwatch();
-            Timer.Start();
-
-            var G = await Request_GlobalStructure_List();
-            Timer.Stop();
-
             var P = await Request_Player_Info(aPlayerId.ToId());
 
-            await ShowDialog(aPlayerId, P, $"Teleporters (Playfields #{G.globalStructures.Count} Structures #{G.globalStructures.Aggregate(0, (c, p) => c + p.Value.Count)} load {Timer.Elapsed.TotalMilliseconds:N2}ms)", TeleporterDB.Settings.Current.TeleporterRoutes.OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString(G) + "\n"));
+            await ShowDialog(aPlayerId, P, $"Teleporters", TeleporterDB.Settings.Current.TeleporterRoutes.OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToInfoString() + "\n"));
         }
 
         private async Task DeleteTeleporterRoutes(int aPlayerId, int aSourceId, int aTargetId)
@@ -241,15 +236,14 @@ namespace EmpyrionTeleporter
 
         private async Task ListTeleporterRoutes(int aPlayerId, int aStructureId)
         {
-            var G = await Request_GlobalStructure_List();
             var P = await Request_Player_Info(aPlayerId.ToId());
 
-            await ShowDialog(aPlayerId, P, "Teleporters", TeleporterDB.List(aStructureId, P).OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToString(G) + "\n"));
+            await ShowDialog(aPlayerId, P, "Teleporters", TeleporterDB.List(aStructureId, P).OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToInfoString() + "\n"));
         }
 
-    private async Task<bool> ExecTeleportPlayer(GlobalStructureList aGlobalStructureList, PlayerInfo aPlayer, int aPlayerId)
+        private async Task<bool> ExecTeleportPlayer(PlayerInfo aPlayer, int aPlayerId)
         {
-            var FoundRoute = TeleporterDB.SearchRoute(aGlobalStructureList, aPlayer);
+            var FoundRoute = await TeleporterDB.SearchRoute(aPlayer);
             if (FoundRoute == null)
             {
                 InformPlayer(aPlayerId, "No teleporter position here :-( wait 2min for structure update and try it again please.");
