@@ -19,7 +19,8 @@ namespace EmpyrionTeleporter
         PrivateAccess,
         FactionAccess,
         PublicAccess,
-        AlliesAccess
+        PublicAccessFree,
+        AlliesAccess,
     }
 
     public class TeleporterDB
@@ -38,6 +39,8 @@ namespace EmpyrionTeleporter
         public class TeleporterTargetData : TeleporterData
         {
             public string Playfield { get; set; }
+            public TeleporterPermission Permission { get; set; }
+
             public override string ToString()
             {
                 return $"Id:[c][ffffff]{Id}/[c][ffffff]{Playfield}[-][/c] relpos=[c][ffffff]{Position.String()}[-][/c]";
@@ -65,8 +68,8 @@ namespace EmpyrionTeleporter
                 var Sb = SearchEntity(B.Id).GetAwaiter().GetResult();
 
                 return $"[c][ff0000]{Permission}{(PermissionId == 0 ? "" : $" [{PermissionId}]")}[-][/c]: " +
-                       (Sa == null ? A.ToString() : $"[c][ff00ff]{Sa.Data.name}[-][/c] [[c][ffffff]{Sa.Data.id}[-][/c]/[c][ffffff]{Sa.Playfield}[-][/c]/{GetCurrentTeleportTargetPosition(A).GetAwaiter().GetResult().Position.ToString("0.00", CultureInfo.InvariantCulture)}]") + " <=> " +
-                       (Sb == null ? B.ToString() : $"[c][ff00ff]{Sb.Data.name}[-][/c] [[c][ffffff]{Sb.Data.id}[-][/c]/[c][ffffff]{Sb.Playfield}[-][/c]/{GetCurrentTeleportTargetPosition(B).GetAwaiter().GetResult().Position.ToString("0.00", CultureInfo.InvariantCulture)}]");
+                       (Sa == null ? A.ToString() : $"[c][ff00ff]{Sa.Data.name}[-][/c] [[c][ffffff]{Sa.Data.id}[-][/c]/[c][ffffff]{Sa.Playfield}[-][/c]/{GetCurrentTeleportTargetPosition(A, Permission).GetAwaiter().GetResult().Position.ToString("0.00", CultureInfo.InvariantCulture)}]") + " <=> " +
+                       (Sb == null ? B.ToString() : $"[c][ff00ff]{Sb.Data.name}[-][/c] [[c][ffffff]{Sb.Data.id}[-][/c]/[c][ffffff]{Sb.Playfield}[-][/c]/{GetCurrentTeleportTargetPosition(B, Permission).GetAwaiter().GetResult().Position.ToString("0.00", CultureInfo.InvariantCulture)}]");
             }
         }
 
@@ -158,10 +161,11 @@ namespace EmpyrionTeleporter
 
         bool IsPermissionGranted(TeleporterRoute aRoute, PlayerInfo aPlayer)
         {
-            return aRoute.Permission == TeleporterPermission.PublicAccess  ? true :
-                   aRoute.Permission == TeleporterPermission.FactionAccess ? aRoute.PermissionId == aPlayer.factionId :
-                   aRoute.Permission == TeleporterPermission.AlliesAccess  ? AreAllies(aRoute.PermissionId, aPlayer.factionId).Result :
-                   aRoute.Permission == TeleporterPermission.PrivateAccess ? aRoute.PermissionId == aPlayer.entityId  : false;
+            return aRoute.Permission == TeleporterPermission.PublicAccess     ? true :
+                   aRoute.Permission == TeleporterPermission.PublicAccessFree ? true :
+                   aRoute.Permission == TeleporterPermission.FactionAccess    ? aRoute.PermissionId == aPlayer.factionId :
+                   aRoute.Permission == TeleporterPermission.AlliesAccess     ? AreAllies(aRoute.PermissionId, aPlayer.factionId).Result :
+                   aRoute.Permission == TeleporterPermission.PrivateAccess    ? aRoute.PermissionId == aPlayer.entityId  : false;
         }
 
         public async Task AddRoute(TeleporterPermission aPermission, int aSourceId, int aTargetId, PlayerInfo aPlayer)
@@ -266,7 +270,7 @@ namespace EmpyrionTeleporter
             return Settings.Current.TeleporterRoutes.Where(T => (T.A.Id == aStructureId || T.B.Id == aStructureId) && IsPermissionGranted(T, aPlayer));
         }
 
-        public static async Task<TeleporterTargetData> GetCurrentTeleportTargetPosition(TeleporterData aTarget)
+        public static async Task<TeleporterTargetData> GetCurrentTeleportTargetPosition(TeleporterData aTarget, TeleporterPermission permission)
         {
             var StructureInfo = await SearchEntity(aTarget.Id);
             if (StructureInfo == null)
@@ -281,7 +285,7 @@ namespace EmpyrionTeleporter
 
             log($"CurrentTeleportTargetPosition:{StructureInfo.Data.id}/{StructureInfo.Data.type} pos={StructureInfo.Data.pos.String()} TeleportPos={TeleportTargetPos.String()}", LogLevel.Message);
 
-            return new TeleporterTargetData() { Id = aTarget.Id, Playfield = StructureInfo.Playfield, Position = TeleportTargetPos, Rotation = aTarget.Rotation + StructureInfoRot};
+            return new TeleporterTargetData() { Id = aTarget.Id, Playfield = StructureInfo.Playfield, Position = TeleportTargetPos, Rotation = aTarget.Rotation + StructureInfoRot, Permission = permission};
         }
 
         bool IsZero(PVector3 aVector)
@@ -295,8 +299,8 @@ namespace EmpyrionTeleporter
 
             foreach (var I in Settings.Current.TeleporterRoutes.Where(T => T.B.Position != Vector3.Zero && IsPermissionGranted(T, aPlayer)))
             {
-                if (await IsNearPos(I.A, aPlayer.pos)) return await GetCurrentTeleportTargetPosition(I.B);
-                if (await IsNearPos(I.B, aPlayer.pos)) return await GetCurrentTeleportTargetPosition(I.A);
+                if (await IsNearPos(I.A, aPlayer.pos)) return await GetCurrentTeleportTargetPosition(I.B, I.Permission);
+                if (await IsNearPos(I.B, aPlayer.pos)) return await GetCurrentTeleportTargetPosition(I.A, I.Permission);
             }
             return null;
         }

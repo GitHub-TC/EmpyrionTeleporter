@@ -68,17 +68,18 @@ namespace EmpyrionTeleporter
             LogLevel = TeleporterDB.Settings.Current.LogLevel;
             ChatCommandManager.CommandPrefix = TeleporterDB.Settings.Current.ChatCommandPrefix;
 
-            ChatCommands.Add(new ChatCommand(@"tt",                                            (I, A) => ExecAlignCommand(SubCommand.Teleport, TeleporterPermission.PublicAccess,  I, A), "Execute teleport"));
-            ChatCommands.Add(new ChatCommand(@"tt help",                                       (I, A) => ExecAlignCommand(SubCommand.Help,     TeleporterPermission.PublicAccess,  I, A), "Display help"));
-            ChatCommands.Add(new ChatCommand(@"tt back",                                       (I, A) => ExecAlignCommand(SubCommand.Back,     TeleporterPermission.PublicAccess,  I, A), "Teleports the player back to the last (good) position"));
-            ChatCommands.Add(new ChatCommand(@"tt delete (?<SourceId>\d+) (?<TargetId>\d+)",   (I, A) => ExecAlignCommand(SubCommand.Delete,   TeleporterPermission.PublicAccess,  I, A), "Delete all teleportdata from {SourceId} {TargetId}"));
-            ChatCommands.Add(new ChatCommand(@"tt list (?<Id>\d+)",                            (I, A) => ExecAlignCommand(SubCommand.List,     TeleporterPermission.PublicAccess,  I, A), "List all teleportdata from {Id}"));
-            ChatCommands.Add(new ChatCommand(@"tt listall",                                    (I, A) => ExecAlignCommand(SubCommand.ListAll,  TeleporterPermission.PublicAccess,  I, A), "List all teleportdata", PermissionType.Moderator));
-            ChatCommands.Add(new ChatCommand(@"tt cleanup",                                    (I, A) => ExecAlignCommand(SubCommand.CleanUp,  TeleporterPermission.PublicAccess,  I, A), "Removes all teleportdata to deleted structures", PermissionType.Moderator));
-            ChatCommands.Add(new ChatCommand(@"tt private (?<SourceId>\d+) (?<TargetId>\d+)",  (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PrivateAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for you only - must be initialized at {TargetId} too :-)"));
-            ChatCommands.Add(new ChatCommand(@"tt faction (?<SourceId>\d+) (?<TargetId>\d+)",  (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.FactionAccess, I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for your faction - must be initialized at {TargetId} too :-)"));
-            ChatCommands.Add(new ChatCommand(@"tt allies (?<SourceId>\d+) (?<TargetId>\d+)",   (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.AlliesAccess,  I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for your faction and allies - must be initialized at {TargetId} too :-)"));
-            ChatCommands.Add(new ChatCommand(@"tt (?<SourceId>\d+) (?<TargetId>\d+)",          (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PublicAccess,  I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for everyone - must be initialized at {TargetId} too :-)"));
+            ChatCommands.Add(new ChatCommand(@"tt",                                            (I, A) => ExecAlignCommand(SubCommand.Teleport, TeleporterPermission.PublicAccess,       I, A), "Execute teleport"));
+            ChatCommands.Add(new ChatCommand(@"tt help",                                       (I, A) => ExecAlignCommand(SubCommand.Help,     TeleporterPermission.PublicAccess,       I, A), "Display help"));
+            ChatCommands.Add(new ChatCommand(@"tt back",                                       (I, A) => ExecAlignCommand(SubCommand.Back,     TeleporterPermission.PublicAccess,       I, A), "Teleports the player back to the last (good) position"));
+            ChatCommands.Add(new ChatCommand(@"tt delete (?<SourceId>\d+) (?<TargetId>\d+)",   (I, A) => ExecAlignCommand(SubCommand.Delete,   TeleporterPermission.PublicAccess,       I, A), "Delete all teleportdata from {SourceId} {TargetId}"));
+            ChatCommands.Add(new ChatCommand(@"tt list (?<Id>\d+)",                            (I, A) => ExecAlignCommand(SubCommand.List,     TeleporterPermission.PublicAccess,       I, A), "List all teleportdata from {Id}"));
+            ChatCommands.Add(new ChatCommand(@"tt listall",                                    (I, A) => ExecAlignCommand(SubCommand.ListAll,  TeleporterPermission.PublicAccess,       I, A), "List all teleportdata", PermissionType.Moderator));
+            ChatCommands.Add(new ChatCommand(@"tt cleanup",                                    (I, A) => ExecAlignCommand(SubCommand.CleanUp,  TeleporterPermission.PublicAccess,       I, A), "Removes all teleportdata to deleted structures", PermissionType.Moderator));
+            ChatCommands.Add(new ChatCommand(@"tt private (?<SourceId>\d+) (?<TargetId>\d+)",  (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PrivateAccess,      I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for you only - must be initialized at {TargetId} too :-)"));
+            ChatCommands.Add(new ChatCommand(@"tt faction (?<SourceId>\d+) (?<TargetId>\d+)",  (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.FactionAccess,      I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for your faction - must be initialized at {TargetId} too :-)"));
+            ChatCommands.Add(new ChatCommand(@"tt allies (?<SourceId>\d+) (?<TargetId>\d+)",   (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.AlliesAccess,       I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for your faction and allies - must be initialized at {TargetId} too :-)"));
+            ChatCommands.Add(new ChatCommand(@"tt free (?<SourceId>\d+) (?<TargetId>\d+)",     (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PublicAccessFree,   I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for everyone (use has no casts) - must be initialized at {TargetId} too :-)"));
+            ChatCommands.Add(new ChatCommand(@"tt (?<SourceId>\d+) (?<TargetId>\d+)",          (I, A) => ExecAlignCommand(SubCommand.Save,     TeleporterPermission.PublicAccess,       I, A), "Init Teleport from {SourceId} (PlayerPosition) to {TargetId} accessible is allowed for everyone - must be initialized at {TargetId} too :-)"));
         }
 
         private void InitializeTeleporterDB()
@@ -167,8 +168,17 @@ namespace EmpyrionTeleporter
         {
             var P = await Request_Player_Info(aPlayerId.ToId());
 
-            if (P.credits < TeleporterDB.Settings.Current.CostsPerTeleport) AlertPlayer(P.entityId, $"You need {TeleporterDB.Settings.Current.CostsPerTeleport} credits ;-)");
-            else if (await ExecTeleportPlayer(P, aPlayerId) && TeleporterDB.Settings.Current.CostsPerTeleport > 0) await Request_Player_SetCredits(new IdCredits(P.entityId, P.credits - TeleporterDB.Settings.Current.CostsPerTeleport));
+            var FoundRoute = await TeleporterDB.SearchRoute(P);
+            if (FoundRoute == null)
+            {
+                InformPlayer(aPlayerId, $"No teleporter position here {GetVector3(P.pos).String()} on '{P.playfield}' :-( wait 2min for structure update and try it again please.");
+                Log($"EmpyrionTeleporter: Exec: {P.playerName}/{P.entityId}/{P.clientId} -> no route found for pos={GetVector3(P.pos).String()} on '{P.playfield}'", LogLevel.Error);
+                return;
+            }
+
+            if(FoundRoute.Permission == TeleporterPermission.PublicAccessFree) { await ExecTeleportPlayer(P, aPlayerId, FoundRoute); return; }
+            else if (P.credits < TeleporterDB.Settings.Current.CostsPerTeleport) AlertPlayer(P.entityId, $"You need {TeleporterDB.Settings.Current.CostsPerTeleport} credits ;-)");
+            else if (await ExecTeleportPlayer(P, aPlayerId, FoundRoute) && TeleporterDB.Settings.Current.CostsPerTeleport > 0) await Request_Player_SetCredits(new IdCredits(P.entityId, P.credits - TeleporterDB.Settings.Current.CostsPerTeleport));
         }
 
         private async Task SaveTeleporterRoute(int aPlayerId, TeleporterPermission aPermission, int aSourceId, int aTargetId)
@@ -241,35 +251,27 @@ namespace EmpyrionTeleporter
             await ShowDialog(aPlayerId, P, "Teleporters", TeleporterDB.List(aStructureId, P).OrderBy(T => T.Permission).Aggregate("\n", (S, T) => S + T.ToInfoString() + "\n"));
         }
 
-        private async Task<bool> ExecTeleportPlayer(PlayerInfo aPlayer, int aPlayerId)
+        private async Task<bool> ExecTeleportPlayer(PlayerInfo aPlayer, int aPlayerId, TeleporterDB.TeleporterTargetData foundRoute)
         {
-            var FoundRoute = await TeleporterDB.SearchRoute(aPlayer);
-            if (FoundRoute == null)
-            {
-                InformPlayer(aPlayerId, "No teleporter position here :-( wait 2min for structure update and try it again please.");
-                Log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}/{aPlayer.clientId} -> no route found for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'", LogLevel.Error);
-                return false;
-            }
-
             if (TeleporterDB.Settings.Current.ForbiddenPlayfields.Contains(aPlayer   .playfield) ||
-                TeleporterDB.Settings.Current.ForbiddenPlayfields.Contains(FoundRoute.Playfield))
+                TeleporterDB.Settings.Current.ForbiddenPlayfields.Contains(foundRoute.Playfield))
             {
                 InformPlayer(aPlayerId, "No teleport allowed here ;-)");
                 Log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}/{aPlayer.clientId} -> no teleport allowed for pos={GetVector3(aPlayer.pos).String()} on '{aPlayer.playfield}'", LogLevel.Error);
                 return false;
             }
 
-            Log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}-> {FoundRoute.Id} on '{FoundRoute.Playfield}' pos={FoundRoute.Position.String()} rot={FoundRoute.Rotation.String()}", LogLevel.Message);
+            Log($"EmpyrionTeleporter: Exec: {aPlayer.playerName}/{aPlayer.entityId}-> {foundRoute.Id} on '{foundRoute.Playfield}' pos={foundRoute.Position.String()} rot={foundRoute.Rotation.String()}", LogLevel.Message);
 
             if (!PlayerLastGoodPosition.ContainsKey(aPlayer.entityId)) PlayerLastGoodPosition.Add(aPlayer.entityId, null);
             PlayerLastGoodPosition[aPlayer.entityId] = new IdPlayfieldPositionRotation(aPlayer.entityId, aPlayer.playfield, aPlayer.pos, aPlayer.rot);
 
             Action<PlayerInfo> ActionTeleportPlayer = async (P) =>
             {
-                if (FoundRoute.Playfield == P.playfield)
+                if (foundRoute.Playfield == P.playfield)
                     try
                     {
-                        await Request_Entity_Teleport(new IdPositionRotation(aPlayer.entityId, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
+                        await Request_Entity_Teleport(new IdPositionRotation(aPlayer.entityId, GetVector3(foundRoute.Position), GetVector3(foundRoute.Rotation)));
                     }
                     catch (Exception error)
                     {
@@ -280,7 +282,7 @@ namespace EmpyrionTeleporter
                 {
                     try
                     {
-                        await Request_Player_ChangePlayerfield(new IdPlayfieldPositionRotation(aPlayer.entityId, FoundRoute.Playfield, GetVector3(FoundRoute.Position), GetVector3(FoundRoute.Rotation)));
+                        await Request_Player_ChangePlayerfield(new IdPlayfieldPositionRotation(aPlayer.entityId, foundRoute.Playfield, GetVector3(foundRoute.Position), GetVector3(foundRoute.Rotation)));
                     }
                     catch (Exception error)
                     {
@@ -312,7 +314,7 @@ namespace EmpyrionTeleporter
                 }
 
                 ActionTeleportPlayer(aPlayer);
-                CheckPlayerStableTargetPos(aPlayerId, aPlayer, ActionTeleportPlayer, FoundRoute.Position);
+                CheckPlayerStableTargetPos(aPlayerId, aPlayer, ActionTeleportPlayer, foundRoute.Position);
 
             })).Start();
 
